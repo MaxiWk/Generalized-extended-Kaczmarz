@@ -9,6 +9,8 @@ m = 200;  % 20
 n = 500;  % 50
 sp = 5;
 
+num_repeats = 60; % 60 Number of repeats over random instances
+
 real_setting = true;
 
 maxiter = 2*1e5; % Number of iterations
@@ -22,7 +24,6 @@ lambda_value = 10;
 T = @(z) z;  % gradient gstar for g(x) = 1/2 ||x||_2^2 
 L = 1;
 
-num_repeats = 60; % 60 Number of repeats over random instances
 
 writeout = false;
 

@@ -9,7 +9,7 @@ m = 800;  % 20
 n = 600;  % 50
 sp = ceil(n/20); % 5
 
-num_repeats = 5; % 60 Number of repeats over random instances
+num_repeats = 60; % 60 Number of repeats over random instances
 
 real_setting = true;
 
