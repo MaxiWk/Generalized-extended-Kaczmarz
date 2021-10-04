@@ -1,6 +1,8 @@
-function [A,b,b_exact,xhat] = set_up_instance(m,n,sp,real_setting,experiment_description)
+function problem_data = set_up_instance(m,n,sp,real_setting,experiment_description)
   
-  b_exact = 0;  % just to not have it undefined
+  b_exact = 0;  
+  tol_resA = 0;
+  tol_resAT = 0;
   
   switch experiment_description
     
@@ -38,6 +40,8 @@ function [A,b,b_exact,xhat] = set_up_instance(m,n,sp,real_setting,experiment_des
     case 'not solvable, noise only in the complement of range, well conditioned A'
        
       noiselev_rangeA_ortho = 0.5;
+      tol_resA = 1e-5;
+      tol_resAT = 1e-5;
       sigma_min = 1;
       sigma_max = 2;
       rank = round(2*min(m,n)/3);
@@ -64,6 +68,8 @@ function [A,b,b_exact,xhat] = set_up_instance(m,n,sp,real_setting,experiment_des
     case 'not solvable, noise in the complement of range, well conditioned A and xhat'  
         
       noiselev_rangeA_ortho = 5;
+      tol_resA = 1e-5;
+      tol_resAT = 1e-5;
       sigma_min = 1;
       sigma_max = 100;
       xhat_min = 1;
@@ -143,6 +149,8 @@ function [A,b,b_exact,xhat] = set_up_instance(m,n,sp,real_setting,experiment_des
       
       b = b_exact + rangeA_ortho + noise_rangeA;      
           
+      tol_resA = noiselev_rangeA *norm(b_exact);
+      tol_resAT = 0.1;
       
           
       case 'not solvable, little gaussian noise'
@@ -363,13 +371,13 @@ function [A,b,b_exact,xhat] = set_up_instance(m,n,sp,real_setting,experiment_des
      otherwise 
           disp('No experiment chosen!')
  
+          
          
   end
   
   
   
   %%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % helper function
   
   function A = random_rank_deficient_matrix(m,n,rank)
     
@@ -397,6 +405,14 @@ function [A,b,b_exact,xhat] = set_up_instance(m,n,sp,real_setting,experiment_des
           
   end
   
-  
-  
+
+
+
+ problem_data.A = A; 
+ problem_data.xhat = xhat;
+ problem_data.b_exact = b_exact;
+ problem_data.b = b;
+ problem_data.tol_resA = tol_resA;
+ problem_data.tol_resAT = tol_resAT;
+
 end

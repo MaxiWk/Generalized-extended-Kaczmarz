@@ -5,11 +5,13 @@
 % with 'solvable, medium gaussian noise' 
 % unfortunately, in both cases the extended method gives more nonzero entries
 
-m = 800;  % 20
-n = 600;  % 50
+m = 50;  % 20
+n = 40;  % 50
 sp = ceil(n/20); % 5
 
-num_repeats = 60; % 60 Number of repeats over random instances
+
+num_repeats = 5; 
+
 
 real_setting = true;
 
@@ -51,8 +53,13 @@ experiment_description = 'not solvable, noise only in the complement of range, w
 
 disp_instance = false;
 
+stopcrit_sample_pars.length_resA_sampled = ceil(m/2);
+stopcrit_sample_pars.length_resAT_sampled = ceil(n/2);
+stopcrit_sample_pars.min_possible_iter_for_stopping = 4*max(m,n);
+
 data = experiment(n,m,sp,real_setting,lambda_value,T,L_gstar,maxiter,num_repeats,iter_save,rowsamp,colsamp,1,...
-                              writeout,disp_instance,savestep,method_array,experiment_description);
+                  writeout,disp_instance,savestep,stopcrit_sample_pars,method_array,experiment_description);
+                              
 
                               
                               
