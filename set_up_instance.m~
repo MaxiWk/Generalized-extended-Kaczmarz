@@ -40,8 +40,8 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
     case 'not solvable, noise only in the complement of range, well conditioned A'
        
       noiselev_rangeA_ortho = 0.5;
-      tol_resA = 1e-5;
-      tol_resAT = 1e-5;
+      tol_resA = 
+      tol_resAT = 
       sigma_min = 1;
       sigma_max = 2;
       rank = round(2*min(m,n)/3);
@@ -68,8 +68,6 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
     case 'not solvable, noise in the complement of range, well conditioned A and xhat'  
         
       noiselev_rangeA_ortho = 5;
-      tol_resA = 1e-5;
-      tol_resAT = 1e-5;
       sigma_min = 1;
       sigma_max = 100;
       xhat_min = 1;
@@ -150,7 +148,6 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
       b = b_exact + rangeA_ortho + noise_rangeA;      
           
       tol_resA = noiselev_rangeA *norm(b_exact);
-      tol_resAT = 0.1;
       
           
       case 'not solvable, little gaussian noise'
@@ -372,6 +369,12 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           disp('No experiment chosen!')
  
           
+     problem_data.A = A; 
+     problem_data.xhat = xhat;
+     problem_data.b_exact = b_exact;
+     problem_data.b = b;
+     problem_data.tol_resA = tol_resA;
+     problem_data.tol_resAT = tol_resAT;
          
   end
   
@@ -405,14 +408,6 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           
   end
   
-
-
-
- problem_data.A = A; 
- problem_data.xhat = xhat;
- problem_data.b_exact = b_exact;
- problem_data.b = b;
- problem_data.tol_resA = tol_resA;
- problem_data.tol_resAT = tol_resAT;
-
+  
+  
 end

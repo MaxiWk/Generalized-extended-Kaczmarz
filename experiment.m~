@@ -53,7 +53,8 @@ fprintf('Experiment A, m=%d, n=%d, sp=%d, maxiter=%d, num_repeats=%d,\n',m,n,sp,
 num_methods = length(method_array); 
 [res, lsres, res_proj, lsres_proj, grad_zfunctional, err_to_sparse, err_to_moorepi, nonzero_entries]...
                      = deal( zeros(floor(maxiter/iter_save), num_repeats, num_methods) );
-x_last_test_instance = zeros(n,num_methods);
+[b_exact_last_test_instance, b_last_test_instance, xhat_last_test_instance, x_last_test_instance]...
+    = deal( zeros(m,num_methods), zeros(m,num_methods), zeros(n,num_methods), zeros(n,num_methods) );
 [length_resA_sampled, length_resAT_sampled] = deal(stopcrit_sample_pars.length_resA_sampled,...
                                                              stopcrit_sample_pars.length_resAT_sampled);
 resA_sampled = zeros(1, stopcrit_sample_pars.length_resA_sampled);
@@ -291,6 +292,9 @@ for repeats = 1:num_repeats
         end
         
         if last_repeat 
+            b_exact_last_test_instance(:,method_counter) = b_exact;
+            b_last_test_instance(:,method_counter) = b;
+            xhat_last_test_instance(:,method_counter) = xhat;
             x_last_test_instance(:,method_counter) = x;
         end
     
@@ -541,29 +545,21 @@ for repeats = 1:num_repeats
     
 
 
-    %% Plot entries of b_exact vs. and b xhat vs. the last iterate x_k 
-    
-    % b_exact vs. b
-    
-    if real_setting
-        figure
-        plot(1:m,b_exact,1:m,b,':'); title('b_{hat}, b');
-        title('Last test instance: hidden b in R(A) and noisy b')
-    else
-        figure
-        plot(1:m,abs(b_exact),1:m,abs(b),':'); title('|b_{hat}|, |b|');
-        title('Last test instance: abs. value of b in R(A) and noisy b')
-    end
-        
-    
+    %% Plot entries of xhat and the last iterate x_k 
     for method_counter = 1:length(method_array)
         
+        b_exact = b_exact_last_test_instance(:,method_counter);
+        b = b_last_test_instance(:,method_counter);
+        xhat = xhat_last_test_instance(:,method_counter);
         x = x_last_test_instance(:,method_counter);
         
         if real_setting
             figure
+            plot(1:m,b_exact,1:m,b,':'); title('b_{hat}, b');
+            title(['Last test instance of ' method_array{method_counter} ' method: hidden b in R(A) and noisy b'])
+            figure
             stem([xhat,x]); title(['x_{hat} , nnz_{hat}=', num2str(sp),' , x , nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
-            title(['Last test instance, ' method_array{method_counter} ' method: hidden sparse x_{hat} and last iterate x'])
+            title(['Last test instance, ' method_array{method_counter} ' method: hidden sparse x_hat and found x_hat'])
             %subplot(2,1,2); plot(1:n,x_hat,1:n,x_stop,':'); title(['x_{hat}, x, nnz_{hat}=',num2str(nnz_hat),' , nnz=',num2str(numel(find(x_stop)))]);
         else
             figure
@@ -571,7 +567,7 @@ for repeats = 1:num_repeats
             title(['Last test instance of ' method_array{method_counter} ': abs. value of b in R(A) and noisy b'])
             figure
             stem([abs(xhat),abs(x)]); title(['|x_{hat}| , nnz_{hat}=', num2str(sp),' , |x| , nnz=',num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
-            title(['Last test instance of ' method_array{method_counter} ' method: abs. value of hidden sparse x_{hat} and last iterate x'])
+            title(['Last test instance of ' method_array{method_counter} ' method: abs. value of hidden sparse x_hat and found x_hat'])
             %subplot(2,1,2); plot(1:n,abs(x_hat),1:n,abs(x_stop),':'); title(['x_{hat}, x, nnz_{hat}=',num2str(nnz_hat),' , nnz=',num2str(numel(find(x_stop)))]);
         end
         
