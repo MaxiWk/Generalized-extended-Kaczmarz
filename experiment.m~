@@ -254,8 +254,8 @@ for repeats = 1:num_repeats
                   && resA_mean(iter) < tol_resA ...
                   && resAT_mean(iter) < tol_resAT )
 
-                  iterstop_list(:,repeats,method_counter) = iter;
-                  xstop_list(:,repeats,method_counter) = x;
+                  iterstop_list(:,num_repeats,num_methods) = iter;
+                  xstop_list(:,num_repeats,num_methods) = x;
                   stopping_criterion_fulfilled = true;
                   %break;
 
@@ -556,25 +556,21 @@ for repeats = 1:num_repeats
     end
         
     
-    for method_counter = 1:length(method_array)           
-        
-        % plot last iterate
-        figure
-        x = x_last_test_instance(:,method_counter);
+    for method_counter = 1:length(method_array)
+            
         if ~real_setting  % plot absolute values
             xhat = abs(xhat);
             x = abs(x);
         end
+        
+        % plot last iterate
+        figure
+        x = x_last_test_instance(:,method_counter);
         stem([xhat,x]); title(['x_{hat} , nnz_{hat}=', num2str(sp),' , x , nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
         title(['Last test instance, ' method_array{method_counter} ' method: hidden sparse x_{hat} and last iterate x'])
-        
         % plot iterate after stopping
         figure
         x = xstop_list(:,num_repeats,method_counter);
-        if ~real_setting  % plot absolute values
-            xhat = abs(xhat);
-            x = abs(x);
-        end        
         stem([xhat,x]); title(['x_{hat} , nnz_{hat}=', num2str(sp),' , x , nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
         title(['Last test instance, ' method_array{method_counter} ' method: hidden sparse x_{hat} and iterate x after stopping'])
 
