@@ -40,8 +40,8 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
     case 'not solvable, noise only in the complement of range, well conditioned A'
        
       noiselev_rangeA_ortho = 0.5;
-      tol_resA = 1e-5;
-      tol_resAT = 1e-5;
+      tol_resA = 1e-3;
+      tol_resAT = 1e-3;
       sigma_min = 1;
       sigma_max = 2;
       rank = round(2*min(m,n)/3);
@@ -71,7 +71,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
       tol_resA = 1e-5;
       tol_resAT = 1e-5;
       sigma_min = 1;
-      sigma_max = 100;
+      sigma_max = 2;
       xhat_min = 1;
       xhat_max = 6;
       rank = round(2*min(m,n)/3);

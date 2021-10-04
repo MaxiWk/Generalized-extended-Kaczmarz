@@ -10,7 +10,7 @@ n = 40;  % 50
 sp = ceil(n/20); % 5
 
 
-num_repeats = 5; 
+num_repeats = 2; 
 
 
 real_setting = true;
@@ -30,7 +30,8 @@ writeout = false;
 
 savestep = 1; 
 
-method_array = {'rek','srk','esrek','srek'}; 
+%method_array = {'rek','srk','esrek','srek'};
+method_array = {'srek','esrek'};
 
 %experiment_description =  'rank-deficient, noise in complement of range';
 
@@ -53,8 +54,8 @@ experiment_description = 'not solvable, noise only in the complement of range, w
 
 disp_instance = false;
 
-stopcrit_sample_pars.length_resA_sampled = ceil(m/2);
-stopcrit_sample_pars.length_resAT_sampled = ceil(n/2);
+stopcrit_sample_pars.length_resA_sampled = 10; % ceil(m/2)
+stopcrit_sample_pars.length_resAT_sampled = 10; % ceil(n/2)
 stopcrit_sample_pars.min_possible_iter_for_stopping = 4*max(m,n);
 
 data = experiment(n,m,sp,real_setting,lambda_value,T,L_gstar,maxiter,num_repeats,iter_save,rowsamp,colsamp,1,...

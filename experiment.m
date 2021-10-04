@@ -60,7 +60,7 @@ resA_sampled = zeros(1, stopcrit_sample_pars.length_resA_sampled);
 resAT_sampled = zeros(1, stopcrit_sample_pars.length_resAT_sampled);
 [resA_mean, resAT_mean] = deal( zeros(1,maxiter) );
 
-iterstop_list = zeros(1,num_repeats,num_methods);
+iterstop_list = zeros(num_repeats,num_methods);
 xstop_list = zeros(n, num_repeats, num_methods);
 
 time = zeros(num_repeats, num_methods);
@@ -175,7 +175,7 @@ for repeats = 1:num_repeats
         
         tic;
         
-        stopping_criterion_fulfilled = false;
+        stopped = false;
 
           for iter = 1:maxiter
 
@@ -243,20 +243,21 @@ for repeats = 1:num_repeats
               resA_sampled(iter) = a'*x-b(r)+zdual(r);
               first_iter_with_row_samples = max(1, iter-length_resA_sampled+1);
               actual_length_resA_sampled = iter - first_iter_with_row_samples + 1;
-              resA_mean(iter) = norm(resA_sampled(first_iter_with_row_samples:iter)) *sqrt(m/max(1,actual_length_resA_sampled));
+              resA_mean(iter) = norm(resA_sampled(first_iter_with_row_samples:iter)) *sqrt(length_resA_sampled/max(1,actual_length_resA_sampled));
 
               resAT_sampled(iter) = c'*z;
               first_iter_with_col_samples = max(1,iter-length_resAT_sampled+1);
               actual_length_resAT_sampled = iter - first_iter_with_col_samples + 1;
-              resAT_mean(iter) = norm(resAT_sampled(first_iter_with_col_samples:iter)) * sqrt(n/max(1,actual_length_resAT_sampled));
+              resAT_mean(iter) = norm(resAT_sampled(first_iter_with_col_samples:iter)) * sqrt(length_resAT_sampled/max(1,actual_length_resAT_sampled));
 
-              if( iter > stopcrit_sample_pars.min_possible_iter_for_stopping ...
+              if( ~stopped ...
+                  && iter > stopcrit_sample_pars.min_possible_iter_for_stopping ...
                   && resA_mean(iter) < tol_resA ...
                   && resAT_mean(iter) < tol_resAT )
 
-                  iterstop_list(:,repeats,method_counter) = iter;
+                  iterstop_list(repeats,method_counter) = iter;
                   xstop_list(:,repeats,method_counter) = x;
-                  stopping_criterion_fulfilled = true;
+                  stopped = true;
                   %break;
 
               end
@@ -285,9 +286,9 @@ for repeats = 1:num_repeats
 
         time(repeats, method_counter) = toc;
 
-        if ~stopping_criterion_fulfilled
-            iterstop = maxiter;
-            xstop_list(:,num_repeats,num_methods) = x;
+        if ~stopped
+            iterstop_list(repeats,method_counter) = maxiter;
+            xstop_list(:,repeats,method_counter) = x;
         end
         
         if last_repeat 
@@ -611,6 +612,7 @@ for repeats = 1:num_repeats
     % if more than one repeat
 
     data = struct('method_array', method_array, 'iterstop_list', iterstop_list, 'xstop_list', xstop_list, ...
+                  'resA_mean', resA_mean, 'resAT_mean', resA_mean, ...
                   'max_res', max_res, 'min_res', min_res, 'median_res', median_res, 'quant25_res', quant25_res, 'quant75_res', quant75_res,...
                   'max_lsres', max_lsres, 'min_lsres', min_lsres, 'median_lsres', median_lsres, 'quant25_lsres', quant25_lsres, 'quant75_lsres', quant75_lsres,...
                   'max_err_to_sparse', max_err_to_sparse, 'min_err_to_sparse', min_err_to_sparse, 'median_err_to_sparse', median_err_to_sparse, 'quant25_err_to_sparse', quant25_err_to_sparse, 'quant75_err_to_sparse', quant75_err_to_sparse,...
@@ -661,7 +663,7 @@ for repeats = 1:num_repeats
 
       for i = 1:num_methods
           minmaxcolor_i = minmaxcolor_dict(method_array{i});
-
+%Hi
           if choose_logy
             h = fill([num_iter_array  fliplr(num_iter_array)], [log10(maxs(:,i)')  fliplr(log10(mins(:,i))')], minmaxcolor_i,'EdgeColor', 'none');
             set(h,'facealpha', .5)
