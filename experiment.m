@@ -412,7 +412,7 @@ for repeats = 1:num_repeats
 
     choose_logy = true;
 
-    medianplot_array = plot_minmax_median_quantiles(min_res,max_res,median_res,quant25_res,quant75_res,choose_logy);
+    medianplot_array = plot_minmax_median_quantiles(min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
 
     %legend(medianplot_array, 'location', 'northwest');
 
@@ -430,7 +430,9 @@ for repeats = 1:num_repeats
     choose_logy = true;
 
     medianplot_array = plot_minmax_median_quantiles(min_grad_zfunctional,max_grad_zfunctional,median_grad_zfunctional,...
-                                                    quant25_grad_zfunctional,quant75_grad_zfunctional,choose_logy);
+                                                    quant25_grad_zfunctional,quant75_grad_zfunctional,choose_logy, ...
+                                                    method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
+                                                    linecolor_dict,displayname_dict);
 
 
     hold off
@@ -450,7 +452,7 @@ for repeats = 1:num_repeats
     choose_logy = true;
 
     medianplot_array = plot_minmax_median_quantiles(min_adaptive_res, max_adaptive_res,...
-                    median_adaptive_res, quant25_adaptive_res, quant75_adaptive_res, choose_logy);
+                    median_adaptive_res, quant25_adaptive_res, quant75_adaptive_res, choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
 
     hold off
 
@@ -468,7 +470,7 @@ for repeats = 1:num_repeats
 
     choose_logy = true;
 
-    medianplot_array = plot_minmax_median_quantiles(min_res_proj,max_res_proj,median_res_proj,quant25_res_proj,quant75_res_proj, choose_logy);
+    medianplot_array = plot_minmax_median_quantiles(min_res_proj,max_res_proj,median_res_proj,quant25_res_proj,quant75_res_proj, choose_logy, method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
 
     hold off
 
@@ -488,7 +490,7 @@ for repeats = 1:num_repeats
 
     choose_logy = true;
 
-    medianplot_array = plot_minmax_median_quantiles(min_lsres,max_lsres,median_lsres,quant25_lsres,quant75_lsres,choose_logy);
+    medianplot_array = plot_minmax_median_quantiles(min_lsres,max_lsres,median_lsres,quant25_lsres,quant75_lsres,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
 
     %legend(medianplot_array, 'location', 'southwest');
 
@@ -511,7 +513,9 @@ for repeats = 1:num_repeats
     choose_logy = true;
 
     medianplot_array = plot_minmax_median_quantiles(min_err_to_sparse,max_err_to_sparse,median_err_to_sparse,...
-                                                    quant25_err_to_sparse,quant75_err_to_sparse, choose_logy);
+                                                    quant25_err_to_sparse,quant75_err_to_sparse, choose_logy,...
+                                                    method_array,iter_save,maxiter,minmaxcolor_dict,...
+                                                    quantcolor_dict,linecolor_dict,displayname_dict);
 
     %legend(medianplot_array, 'location', 'northeast');
 
@@ -531,8 +535,9 @@ for repeats = 1:num_repeats
     choose_logy = true;
 
     medianplot_array = plot_minmax_median_quantiles(min_err_to_moorepi,max_err_to_moorepi,median_err_to_moorepi,...
-                                                    quant25_err_to_moorepi,quant75_err_to_moorepi,choose_logy);
-
+                                                    quant25_err_to_moorepi,quant75_err_to_moorepi,choose_logy,...);
+                                                    method_array,iter_save,maxiter,minmaxcolor_dict,...
+                                                    quantcolor_dict,linecolor_dict,displayname_dict);
     hold off                                                
 
     title([sprintf('Distance to Moore Penrose solution; m = %d, n = %d, s = %d, repeats = %d, sampling: ',m,n,sp,num_repeats) rowsamp])
@@ -609,10 +614,15 @@ for repeats = 1:num_repeats
 
     % output data
 
-    % if more than one repeat
-
-    data = struct('method_array', method_array, 'iterstop_list', iterstop_list, 'xstop_list', xstop_list, ...
-                  'resA_mean', resA_mean, 'resAT_mean', resA_mean, ...
+    % if more than one repeat, save intersting quantities in a data struct
+    
+    % first convert cell array to struct (otherwise, problems)
+    headings = cell(1,num_methods);
+    for i = 1:num_methods
+        headings{i} = num2str(i);
+    end
+    methods = cell2struct(headings,method_array,2);
+    data = struct('methods', methods, 'iterstop_list', iterstop_list, 'xstop_list', xstop_list, ...
                   'max_res', max_res, 'min_res', min_res, 'median_res', median_res, 'quant25_res', quant25_res, 'quant75_res', quant75_res,...
                   'max_lsres', max_lsres, 'min_lsres', min_lsres, 'median_lsres', median_lsres, 'quant25_lsres', quant25_lsres, 'quant75_lsres', quant75_lsres,...
                   'max_err_to_sparse', max_err_to_sparse, 'min_err_to_sparse', min_err_to_sparse, 'median_err_to_sparse', median_err_to_sparse, 'quant25_err_to_sparse', quant25_err_to_sparse, 'quant75_err_to_sparse', quant75_err_to_sparse,...
@@ -639,57 +649,22 @@ for repeats = 1:num_repeats
 
 
     function [mins, maxs, medians, quant25s, quant75s] = compute_minmax_median_quantiles(arr)
-        for i = 1:size(arr,3)  % loop over all methods
+        for k = 1:size(arr,3)  % loop over all methods
 
-          if size(arr(:,:,i),2) == 1   % if only one repeat, nothing to compute 
+          if size(arr(:,:,k),2) == 1   % if only one repeat, nothing to compute 
             [mins,maxs,medians,quant25s,quant75s] = deal(arr(:,1,:));
           else
-            mins(:,i) = min(arr(:,:,i), [], 2);
-            maxs(:,i) = max(arr(:,:,i), [], 2);
-            medians(:,i) = median(arr(:,:,i),2);
-            quant25s(:,i) = quantile(arr(:,:,i),0.25,2); 
-            quant75s(:,i) = quantile(arr(:,:,i),0.75,2);
-            end
+            mins(:,k) = min(arr(:,:,k), [], 2);
+            maxs(:,k) = max(arr(:,:,k), [], 2);
+            medians(:,k) = median(arr(:,:,k),2);
+            quant25s(:,k) = quantile(arr(:,:,k),0.25,2); 
+            quant75s(:,k) = quantile(arr(:,:,k),0.75,2);
+          end
         end
     end
 
 
 
-
-    function medianplot_array = plot_minmax_median_quantiles(mins,maxs,medians,quant25s,quant75s,choose_logy)
-
-      medianplot_array = zeros(1, length(method_array));  % for legend
-      num_iter_array = 1:iter_save:maxiter;
-
-      for i = 1:num_methods
-          minmaxcolor_i = minmaxcolor_dict(method_array{i});
-%Hi
-          if choose_logy
-            h = fill([num_iter_array  fliplr(num_iter_array)], [log10(maxs(:,i)')  fliplr(log10(mins(:,i))')], minmaxcolor_i,'EdgeColor', 'none');
-            set(h,'facealpha', .5)
-            quantcolor_i = quantcolor_dict(method_array{i});
-            h = fill([num_iter_array  fliplr(num_iter_array)], [log10(quant75s(:,i)')  fliplr(log10(quant25s(:,i))')], quantcolor_i,'EdgeColor', 'none');
-            set(h,'facealpha', .5)
-            medianplot_array(i) = plot( num_iter_array,log10(medians(:,i)),linecolor_dict(method_array{i}),'LineWidth',2,...
-                       'DisplayName',displayname_dict(method_array{i}) );
-            ylabel('(log scale)')
-          else 
-            h = fill([num_iter_array  fliplr(num_iter_array)], [maxs(:,i)'  fliplr(mins(:,i)')], minmaxcolor_i,'EdgeColor', 'none');
-            set(h,'facealpha', .5)
-            quantcolor_i = quantcolor_dict(method_array{i});
-            h = fill([num_iter_array  fliplr(num_iter_array)], [quant75s(:,i)'  fliplr(quant25s(:,i)')], quantcolor_i,'EdgeColor', 'none');
-            set(h,'facealpha', .5)
-            medianplot_array(i) = plot( num_iter_array,medians(:,i),linecolor_dict(method_array{i}),'LineWidth',2,...
-                       'DisplayName',displayname_dict(method_array{i}) );          
-          end
-          % use 10^ notation for iterations    
-          %xt = get(gca, 'xtick');
-          %set('xticklabel', sprintf('%1.1e|', xt));
-
-      end
-    end
-
-   
-    
-
 end
+
+
