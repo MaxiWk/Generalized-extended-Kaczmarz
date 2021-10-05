@@ -116,7 +116,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
       sigma_max = 2;
       xhat_min = 1;
       xhat_max = 6;
-      rank = round(2*min(m,n)/3);
+      rank = round(2*min(m,n)/3);  % Frank: 600
 
       if real_setting
           U=orth(randn(m,rank)); V=orth(randn(n,rank));

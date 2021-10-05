@@ -15,6 +15,7 @@ function data = experiment(n,m,sp,real_setting,lambda_value,T,L_gstar,maxiter,nu
 %     (in this case an adaptive value dependent on xhat is used)
 %  maxiter: maximum number of Kaczmarz-steps (projections, not sweeps)
 %  num_repeats: number of repetitions (samples)
+% iter_save: each such number of iterations, a data point is added in the error plot
 %  rowsamp: Method to sample the rows. Can be
 %    'rownorms_squared': probablity proportional to the squares of row-norms
 %    ' uniform': Uniform sampling of rows 
@@ -257,8 +258,9 @@ for repeats = 1:num_repeats
 
                   iterstop_list(repeats,method_counter) = iter;
                   xstop_list(:,repeats,method_counter) = x;
-                  stopped = true;
-                  %break;
+                  stopped = true;                  
+                  
+                  %break; 
 
               end
 
@@ -274,7 +276,7 @@ for repeats = 1:num_repeats
                 %res_proj(iter_save_counter, repeats, method_counter) = norm(A*x - proj_b)/norm(b);
                 lsres(iter_save_counter, repeats, method_counter) = norm(A'*(A*x-b))/norm_ATb;
                 %lsres_proj(iter_save_counter, repeats, method_counter) = norm(A'*(A*x - proj_b))/norm_ATb; 
-                grad_zfunctional(iter_save_counter, repeats, method_counter) = norm(A'*T(b-A*x));
+                grad_zfunctional(iter_save_counter, repeats, method_counter) = norm(A'*T(b-A*x))/norm_ATb;
                 err_to_moorepi(iter_save_counter, repeats, method_counter) = norm(x-xmoorepi)/norm(xmoorepi);
                 err_to_sparse(iter_save_counter, repeats, method_counter) = norm(x-xhat)/norm(xhat);
                 tol_zero = 1e-5;   % we count entries with abs value > tol_zero
@@ -418,7 +420,7 @@ for repeats = 1:num_repeats
 
     hold off
 
-    title('Residuals')
+    title('Residual')
 
 
 
@@ -545,6 +547,43 @@ for repeats = 1:num_repeats
 
     
     
+    
+    
+    %% Plot quantities after stopping for the last iterate x_k
+    
+    figure 
+    
+    for i = 1:length(method_array)
+        
+        % plot stopped res
+        subplot(2,2,1)
+        plot_array = plot_stopped_quantity(res,iterstop_list,choose_logy,...
+                                           method_array,iter_save,maxiter,linecolor_dict,displayname_dict);
+        %legend(plot_array, 'location', 'northeast');
+        title('Residual')
+
+        % plot stopped grad z functional
+        subplot(2,2,2)
+        plot_array = plot_stopped_quantity(grad_zfunctional,iterstop_list,choose_logy,...
+                                           method_array,iter_save,maxiter,linecolor_dict,displayname_dict);
+        %legend(plot_array, 'location', 'northeast');
+        title('Gradient gstar(b-Ax)')
+        
+        % plot stopped lsres
+        subplot(2,2,3)
+        plot_array = plot_stopped_quantity(lsres,iterstop_list,choose_logy,...
+                                           method_array,iter_save,maxiter,linecolor_dict,displayname_dict);
+        %legend(plot_array, 'location', 'northeast');
+        title('Gradient of least squares function')
+        
+        % plot stopped reconstruction error 
+        subplot(2,2,4)
+        plot_array = plot_stopped_quantity(err_to_sparse,iterstop_list,choose_logy,...
+                                           method_array,iter_save,maxiter,linecolor_dict,displayname_dict);
+        %legend(plot_array, 'location', 'northeast');        
+        title('Distance to sparse solution (RegBP)')
+        
+    end
 
 
     %% Plot entries of b_exact vs. and b xhat vs. the last iterate x_k 

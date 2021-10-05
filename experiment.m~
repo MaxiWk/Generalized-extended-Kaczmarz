@@ -1,4 +1,4 @@
-function [data, data2] = experiment(n,m,sp,real_setting,lambda_value,T,L_gstar,maxiter,num_repeats,iter_save,rowsamp,colsamp,seed_indices,writeout,disp_instance,savestep,stopcrit_sample_pars,method_array,experiment_description)
+function data = experiment(n,m,sp,real_setting,lambda_value,T,L_gstar,maxiter,num_repeats,iter_save,rowsamp,colsamp,seed_indices,writeout,disp_instance,savestep,stopcrit_sample_pars,method_array,experiment_description)
 %function experimentA_kaczmarz_vs_sparse_kaczmarz(n,m,s,maxiter,num_repeats,rowsamp)
 % Perform an experiment to explore usual Kaczmarz vs. sparse Kaczmarz (both
 % randomized). It uses an n by m Gaussian random matrix and a sparse right 
@@ -15,6 +15,7 @@ function [data, data2] = experiment(n,m,sp,real_setting,lambda_value,T,L_gstar,m
 %     (in this case an adaptive value dependent on xhat is used)
 %  maxiter: maximum number of Kaczmarz-steps (projections, not sweeps)
 %  num_repeats: number of repetitions (samples)
+% iter_save: each such number of iterations, a data point is added in the error plot
 %  rowsamp: Method to sample the rows. Can be
 %    'rownorms_squared': probablity proportional to the squares of row-norms
 %    ' uniform': Uniform sampling of rows 
@@ -257,8 +258,9 @@ for repeats = 1:num_repeats
 
                   iterstop_list(repeats,method_counter) = iter;
                   xstop_list(:,repeats,method_counter) = x;
-                  stopped = true;
-                  %break;
+                  stopped = true;                  
+                  
+                  %break; 
 
               end
 
@@ -274,7 +276,7 @@ for repeats = 1:num_repeats
                 %res_proj(iter_save_counter, repeats, method_counter) = norm(A*x - proj_b)/norm(b);
                 lsres(iter_save_counter, repeats, method_counter) = norm(A'*(A*x-b))/norm_ATb;
                 %lsres_proj(iter_save_counter, repeats, method_counter) = norm(A'*(A*x - proj_b))/norm_ATb; 
-                grad_zfunctional(iter_save_counter, repeats, method_counter) = norm(A'*T(b-A*x));
+                grad_zfunctional(iter_save_counter, repeats, method_counter) = norm(A'*T(b-A*x))/norm_ATb;
                 err_to_moorepi(iter_save_counter, repeats, method_counter) = norm(x-xmoorepi)/norm(xmoorepi);
                 err_to_sparse(iter_save_counter, repeats, method_counter) = norm(x-xhat)/norm(xhat);
                 tol_zero = 1e-5;   % we count entries with abs value > tol_zero
@@ -545,6 +547,33 @@ for repeats = 1:num_repeats
 
     
     
+    
+    
+    %% Plot quantities after stopping for the last iterate x_k
+    
+    figure 
+    
+    for i = 1:length(method_array)
+        
+        subplot(2
+        plot_array = plot_stopped_quantity(res,iterstop_list,choose_logy,...
+                                           method_array,iter_save,maxiter,linecolor_dict,displayname_dict);
+        
+        legend(plot_array, 'location', 'northeast');
+        
+        %{
+        % plot res
+        %subplot(2,2,1)
+        plot(num_iter_array, log10(res(:,end,i)'), iter_stop, log10(res(index_stop,end,i)), 'o')
+
+        % plot grad z functional
+
+        % plot lsres
+
+        % plot reconstruction error 
+    %}
+        
+    end
 
 
     %% Plot entries of b_exact vs. and b xhat vs. the last iterate x_k 
@@ -618,12 +647,11 @@ for repeats = 1:num_repeats
     
     % first convert cell array to struct (otherwise, problems)
     headings = cell(1,num_methods);
-    for i = 1:length(num_methods)
-        headings(
+    for i = 1:num_methods
+        headings{i} = num2str(i);
     end
-
+    methods = cell2struct(headings,method_array,2);
     data = struct('methods', methods, 'iterstop_list', iterstop_list, 'xstop_list', xstop_list, ...
-                  'resA_mean', resA_mean, 'resAT_mean', resA_mean, ...
                   'max_res', max_res, 'min_res', min_res, 'median_res', median_res, 'quant25_res', quant25_res, 'quant75_res', quant75_res,...
                   'max_lsres', max_lsres, 'min_lsres', min_lsres, 'median_lsres', median_lsres, 'quant25_lsres', quant25_lsres, 'quant75_lsres', quant75_lsres,...
                   'max_err_to_sparse', max_err_to_sparse, 'min_err_to_sparse', min_err_to_sparse, 'median_err_to_sparse', median_err_to_sparse, 'quant25_err_to_sparse', quant25_err_to_sparse, 'quant75_err_to_sparse', quant75_err_to_sparse,...
