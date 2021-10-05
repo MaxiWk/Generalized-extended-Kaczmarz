@@ -610,8 +610,10 @@ for repeats = 1:num_repeats
             xhat = abs(xhat);
             x = abs(x);
         end
-        stem([xhat,x]); title(['x_{hat} , nnz_{hat}=', num2str(sp),' , x , nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
-        title(['Last test instance, ' method_array{method_counter} ' method: hidden sparse x_{hat} and last iterate x'])
+        stem(xhat,'color','blue'); 
+        hold on 
+        stem(x,'color','red');
+        title(['After all iterations: x_{hat} (blue), nnz_{hat}=', num2str(sp),' , x (red), nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
         
         % plot iterate after stopping
         figure
@@ -620,8 +622,10 @@ for repeats = 1:num_repeats
             xhat = abs(xhat);
             x = abs(x);
         end        
-        stem([xhat,x]); title(['x_{hat} , nnz_{hat}=', num2str(sp),' , x , nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
-        title(['Last test instance, ' method_array{method_counter} ' method: hidden sparse x_{hat} and iterate x after stopping'])
+        stem(xhat,'color','blue'); 
+        hold on
+        stem(x,'color','red');
+        title(['After stopping: x_{hat} (blue) , nnz_{hat}=', num2str(sp),' , x (red) , nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
 
     end
 

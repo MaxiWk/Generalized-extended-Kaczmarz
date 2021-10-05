@@ -147,35 +147,16 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
       
       
       
-      
-     case 'eyedct, noise in R(A)c and a bit of noise in R(A)'
-         
-       noiselev_rangeA_ortho = 5;
-       noiselev_rangeA = 0.1;  % auch mal 0.1
-       r = 500;
+     case 'eyedct, noise in '
          
        U=randn(m,r); V=[eye(r);dctmtx(r)];
        A=U*V';
        
        xhat_min = 1;
        xhat_max = 6;
+          
        xhat = create_xhat_from_sp_min_max(sp, xhat_min, xhat_max);
        
-       % create noisy b 
-      
-       b_exact = A*xhat;               % exact data
-       N = null(A');             % null(A') = orthogonal complement of R(A)
-       v = randn(size(N,2),1);
-       rangeA_ortho = N*v;
-       rangeA_ortho = noiselev_rangeA_ortho* rangeA_ortho/norm(rangeA_ortho);
-       noise_rangeA = A* randn(n,1);
-       noise_rangeA = noiselev_rangeA/ norm(noise_rangeA) *noise_rangeA;
-      
-       b = b_exact + rangeA_ortho + noise_rangeA;      
-          
-       tol_resA = noiselev_rangeA *norm(b_exact);
-       tol_resAT = 0.1;
-      
        
        
        
