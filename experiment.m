@@ -55,14 +55,17 @@ num_methods = length(method_array);
 [res, lsres, res_proj, lsres_proj, grad_zfunctional, err_to_sparse, err_to_moorepi, nonzero_entries]...
                      = deal( zeros(floor(maxiter/iter_save), num_repeats, num_methods) );
 x_last_test_instance = zeros(n,num_methods);
-[length_resA_sampled, length_resAT_sampled] = deal(stopcrit_sample_pars.length_resA_sampled,...
-                                                             stopcrit_sample_pars.length_resAT_sampled);
-resA_sampled = zeros(1, stopcrit_sample_pars.length_resA_sampled);
-resAT_sampled = zeros(1, stopcrit_sample_pars.length_resAT_sampled);
-[resA_mean, resAT_mean] = deal( zeros(1,maxiter) );
+[length_resAbz_sampled, length_resATz_sampled] = deal(stopcrit_sample_pars.length_resAbz_sampled,...
+                                                             stopcrit_sample_pars.length_resATz_sampled);
+resAbz_sampled = zeros(1, stopcrit_sample_pars.length_resAbz_sampled);
+resATz_sampled = zeros(1, stopcrit_sample_pars.length_resATz_sampled);
+[resAbz_mean, resATz_mean] = deal( zeros(1,maxiter) );
 
 iterstop_list = zeros(num_repeats,num_methods);
 xstop_list = zeros(n, num_repeats, num_methods);
+
+[resAbz, resAT] = deal( zeros(floor(maxiter/iter_save), num_repeats, num_methods) );
+[resAbz_mean_list, resATz_mean_list] = deal( zeros(floor(maxiter/iter_save), num_repeats, num_methods) );
 
 time = zeros(num_repeats, num_methods);
 
@@ -83,7 +86,7 @@ for repeats = 1:num_repeats
 
     problem_data = set_up_instance(m,n,sp,real_setting,experiment_description);
     [A,b,b_exact,xhat] = deal( problem_data.A, problem_data.b, problem_data.b_exact, problem_data.xhat );
-    [tol_resA, tol_resAT] = deal( problem_data.tol_resA, problem_data.tol_resAT );
+    [tol_resAbz, tol_resATz] = deal( problem_data.tol_resAbz, problem_data.tol_resATz );
     %rankA = rank(A);
     
     if disp_instance 
@@ -176,20 +179,75 @@ for repeats = 1:num_repeats
         
         tic;
         
+        
+        
+        
         stopped = false;
 
-          for iter = 1:maxiter
+        for iter = 1:maxiter
 
-              %if mod(iter, round(maxiter/10)) == 0
-              %  disp([num2str(iter) ' iterations'])
-              %  disp(['Least-squares residual: ' num2str(norm(A'*(A*x-b)))])
-              %endif
+              %%%%%%%%%%%%
+              % 1.: choose index samples
 
               r = samp_row(iter);
               a = A(r,:)';
-
+              
               s = samp_col(iter); % execute this for all algorithms in order to get the same r indices
+              c = A(:,s);
+              
+              %%%%%%%%%%%%
+              % 2.: check stopping criterion
 
+              resAbz_sampled(iter) = a'*x-b(r)+zdual(r);
+              first_iter_with_row_samples = max(1, iter-length_resAbz_sampled+1);
+              actual_length_resAbz_sampled = iter - first_iter_with_row_samples + 1;
+              resAbz_mean(iter) = norm(resAbz_sampled(first_iter_with_row_samples:iter)) *sqrt(length_resAbz_sampled/max(1,actual_length_resAbz_sampled));
+              
+              resATz_sampled(iter) = c'*z;
+              first_iter_with_col_samples = max(1,iter-length_resATz_sampled+1);
+              actual_length_resATz_sampled = iter - first_iter_with_col_samples + 1;
+              resATz_mean(iter) = norm(resATz_sampled(first_iter_with_col_samples:iter)) * sqrt(length_resATz_sampled/max(1,actual_length_resATz_sampled));
+             
+              if( ~stopped ...
+                  && iter > stopcrit_sample_pars.min_possible_iter_for_stopping ...
+                  && resAbz_mean(iter) < tol_resAbz ...
+                  && resATz_mean(iter) < tol_resATz )
+
+                  iterstop_list(repeats,method_counter) = iter;
+                  xstop_list(:,repeats,method_counter) = x;
+                  stopped = true;                  
+                  
+                  %break; 
+
+              end
+
+
+              %%%%%%%%%%%% 
+              % 3.: save error quntities 
+              
+              if mod(iter, iter_save) == 0  
+                %disp(num2str(norm(x-xmoorepi)));  %%%%%%%
+                res(iter_save_counter, repeats, method_counter) = norm(A*x-b)/norm(b);
+                %lsres(iter_save_counter, repeats, method_counter) = norm(A'*(A*x-A*xhat))/norm_ATb;
+                %res_proj(iter_save_counter, repeats, method_counter) = norm(A*x - proj_b)/norm(b);
+                lsres(iter_save_counter, repeats, method_counter) = norm(A'*(A*x-b))/norm_ATb;
+                %lsres_proj(iter_save_counter, repeats, method_counter) = norm(A'*(A*x - proj_b))/norm_ATb; 
+                grad_zfunctional(iter_save_counter, repeats, method_counter) = norm(A'*T(b-A*x))/norm_ATb;
+                err_to_moorepi(iter_save_counter, repeats, method_counter) = norm(x-xmoorepi)/norm(xmoorepi);
+                err_to_sparse(iter_save_counter, repeats, method_counter) = norm(x-xhat)/norm(xhat);
+                resAbz_list(iter_save_counter, repeats, method_counter) = norm(A*x-b+zdual)/norm(b);
+                resATz_list(iter_save_counter, repeats, method_counter) = norm(A'*z);
+                resAbz_mean_list(iter_save_counter, repeats, method_counter) = resAbz_mean(iter);
+                resATz_mean_list(iter_save_counter, repeats, method_counter) = resATz_mean(iter);
+                tol_zero = 1e-5;   % we count entries with abs value > tol_zero
+                nonzero_entries(iter_save_counter, repeats, method_counter) = nnz(abs(x) > tol_zero);        
+                iter_save_counter = iter_save_counter + 1;
+              end
+              
+              
+              %%%%%%%%%%%%
+              % 4. perform update
+              
               switch method
 
                 % Kaczmarz 
@@ -207,13 +265,11 @@ for repeats = 1:num_repeats
 
                 % Extended Kaczmarz  
                 case 'rek'
-                  c = A(:,s);
                   zdual = zdual - (c'*zdual)/(norma_col(s))*c;
                   x = x -(a'*x-b(r)+zdual(r))/norma(r)*a;
 
                 % Sparse Extended Kaczmarz 
                 case 'srek'
-                  c = A(:,s);
                   zdual = zdual - (c'*z)/(L_gstar*norma_col(s))*c;
                   z = T(zdual);
                   xdual = xdual -(a'*x-b(r)+zdual(r))/norma(r)*a;
@@ -221,7 +277,6 @@ for repeats = 1:num_repeats
 
                 % Sparse Extended Kaczmarz with exact step
                 case 'esrek'
-                  c = A(:,s);
                   zdual = zdual - (c'*z)/(L_gstar*norma_col(s))*c;
                   z = T(zdual);
                   [x,xdual] = linesearch_shrinkage(x,xdual,a,b(r)-zdual(r),lambda);
@@ -238,54 +293,10 @@ for repeats = 1:num_repeats
 
               end 
 
-
-              % check stopping criterion
-
-              resA_sampled(iter) = a'*x-b(r)+zdual(r);
-              first_iter_with_row_samples = max(1, iter-length_resA_sampled+1);
-              actual_length_resA_sampled = iter - first_iter_with_row_samples + 1;
-              resA_mean(iter) = norm(resA_sampled(first_iter_with_row_samples:iter)) *sqrt(length_resA_sampled/max(1,actual_length_resA_sampled));
-
-              resAT_sampled(iter) = c'*z;
-              first_iter_with_col_samples = max(1,iter-length_resAT_sampled+1);
-              actual_length_resAT_sampled = iter - first_iter_with_col_samples + 1;
-              resAT_mean(iter) = norm(resAT_sampled(first_iter_with_col_samples:iter)) * sqrt(length_resAT_sampled/max(1,actual_length_resAT_sampled));
-
-              if( ~stopped ...
-                  && iter > stopcrit_sample_pars.min_possible_iter_for_stopping ...
-                  && resA_mean(iter) < tol_resA ...
-                  && resAT_mean(iter) < tol_resAT )
-
-                  iterstop_list(repeats,method_counter) = iter;
-                  xstop_list(:,repeats,method_counter) = x;
-                  stopped = true;                  
-                  
-                  %break; 
-
-              end
-
-
-
-              % save errors 
-              if mod(iter, iter_save) == 0  
-                %disp(num2str(norm(x-xmoorepi)));  %%%%%%%
-                res(iter_save_counter, repeats, method_counter) = norm(A*x-b)/norm(b);
-                adaptive_res(iter_save_counter, repeats, method_counter) = norm(A*x-b+zdual)/norm(b);
-                %% new idea for measuring lsres: Different for sparse g! Take y^hat = A*x^hat instead of b..
-                %lsres(iter_save_counter, repeats, method_counter) = norm(A'*(A*x-A*xhat))/norm_ATb;
-                %res_proj(iter_save_counter, repeats, method_counter) = norm(A*x - proj_b)/norm(b);
-                lsres(iter_save_counter, repeats, method_counter) = norm(A'*(A*x-b))/norm_ATb;
-                %lsres_proj(iter_save_counter, repeats, method_counter) = norm(A'*(A*x - proj_b))/norm_ATb; 
-                grad_zfunctional(iter_save_counter, repeats, method_counter) = norm(A'*T(b-A*x))/norm_ATb;
-                err_to_moorepi(iter_save_counter, repeats, method_counter) = norm(x-xmoorepi)/norm(xmoorepi);
-                err_to_sparse(iter_save_counter, repeats, method_counter) = norm(x-xhat)/norm(xhat);
-                tol_zero = 1e-5;   % we count entries with abs value > tol_zero
-                nonzero_entries(iter_save_counter, repeats, method_counter) = nnz(abs(x) > tol_zero);        
-                iter_save_counter = iter_save_counter + 1;
-              end
-
           end % end for loop over iteration
 
+          
+          
         time(repeats, method_counter) = toc;
 
         if ~stopped
@@ -359,12 +370,11 @@ for repeats = 1:num_repeats
 
     displayname_dict = containers.Map();
     displayname_dict('rk') = 'Kaczmarz';
-    displayname_dict('srk') = 'Sparse Kaczmarz';
-    displayname_dict('esrk') = 'Exact step sparse Kaczmarz';
+    displayname_dict('srk') = 'SRK';
+    displayname_dict('esrk') = 'ESRK';
     displayname_dict('rek') = 'Extended Kaczmarz';
-    displayname_dict('srek') = 'Sparse extended Kaczmarz'; 
-    displayname_dict('esrek') = 'Sparse extended exact step Kaczmarz';
-    displayname_dict('det_sek') = 'Deterministic sparse extended Kaczmarz';
+    displayname_dict('srek') = 'ExSRK'; 
+    displayname_dict('esrek') = 'ExSRK with ESRK stepsize';
     displayname_dict('lin_breg') = 'Linearized Bregman method';
 
 
@@ -374,8 +384,6 @@ for repeats = 1:num_repeats
     % if only one repeat comment out from here ------
 
     [min_res, max_res, median_res, quant25_res, quant75_res] = compute_minmax_median_quantiles(res);
-    [min_adaptive_res, max_adaptive_res, median_adaptive_res, quant25_adaptive_res, quant75_adaptive_res]...
-                                                             = compute_minmax_median_quantiles(adaptive_res);
     [min_lsres, max_lsres, median_lsres, quant25_lsres, quant75_lsres] = compute_minmax_median_quantiles(lsres);
     %[min_res_proj, max_res_proj, median_res_proj, quant25_res_proj, quant75_res_proj] = compute_minmax_median_quantiles(res_proj);
     %[min_lsres_proj, max_lsres_proj, median_lsres_proj, quant25_lsres_proj, quant75_lsres_proj] = compute_minmax_median_quantiles(lsres_proj);
@@ -387,16 +395,18 @@ for repeats = 1:num_repeats
          = compute_minmax_median_quantiles(nonzero_entries);
     [min_grad_zfunctional, max_grad_zfunctional, median_grad_zfunctional, quant25_grad_zfunctional,...
      quant75_grad_zfunctional]...
-         = compute_minmax_median_quantiles(grad_zfunctional);     
-
+         = compute_minmax_median_quantiles(grad_zfunctional);  
+    [min_resAbz_list, max_resAbz_list, median_resAbz_list, quant25_resAbz_list, quant75_resAbz_list] = compute_minmax_median_quantiles(resAbz_list);
+    [min_resATz_list, max_resATz_list, median_resATz_list, quant25_resATz_list, quant75_resATz_list] = compute_minmax_median_quantiles(resATz_list);
+    [min_resAbz_mean_list, max_resAbz_mean_list, median_resAbz_mean_list, quant25_resAbz_mean_list, quant75_resAbz_mean_list] = compute_minmax_median_quantiles(resAbz_mean_list);
+    [min_resATz_mean_list, max_resATz_mean_list, median_resATz_mean_list, quant25_resATz_mean_list, quant75_resATz_mean_list] = compute_minmax_median_quantiles(resATz_mean_list);
 
     % set zero entries to eps for not getting -inf in log plot
     min_res = set_zero_entries_to_eps(min_res); 
     %min_res_proj = set_zero_entries_to_eps(min_res_proj); 
     min_lsres = set_zero_entries_to_eps(min_lsres); 
     min_grad_zfunctional = set_zero_entries_to_eps(grad_zfunctional);
-    %min_lsres_proj = set_zero_entries_to_eps(min_lsres_proj);
-    min_adaptive_res = set_zero_entries_to_eps(min_adaptive_res);     
+    %min_lsres_proj = set_zero_entries_to_eps(min_lsres_proj);    
     min_err_to_moorepi = set_zero_entries_to_eps(min_err_to_moorepi);
     min_err_to_sparse = set_zero_entries_to_eps(min_err_to_sparse);
 
@@ -416,7 +426,7 @@ for repeats = 1:num_repeats
 
     medianplot_array = plot_minmax_median_quantiles(min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
 
-    %legend(medianplot_array, 'location', 'northwest');
+    legend(medianplot_array, 'location', 'northwest');
 
     hold off
 
@@ -444,22 +454,6 @@ for repeats = 1:num_repeats
 
 
 
-    %% plot results for adaptive residuals
-
-    %{
-    subplot(2,2,2)
-
-    hold on
-
-    choose_logy = true;
-
-    medianplot_array = plot_minmax_median_quantiles(min_adaptive_res, max_adaptive_res,...
-                    median_adaptive_res, quant25_adaptive_res, quant75_adaptive_res, choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
-
-    hold off
-
-    title('||Ax_k-b+z_k*||')
-    %}
 
 
 
@@ -549,43 +543,122 @@ for repeats = 1:num_repeats
     
     
     
-    %% Plot quantities after stopping for the last iterate x_k
     
-    figure 
+    %% Plot quantities for stopping criterion
     
-    for i = 1:length(method_array)
-        
-        % plot stopped res
-        subplot(2,2,1)
-        plot_array = plot_stopped_quantity(res,iterstop_list,choose_logy,...
-                                           method_array,iter_save,maxiter,linecolor_dict,displayname_dict);
-        %legend(plot_array, 'location', 'northeast');
-        title('Residual')
+    % resA_mean: stochastic approximation of ||A*x_k + b - zstar_k|| 
+    figure
 
-        % plot stopped grad z functional
-        subplot(2,2,2)
-        plot_array = plot_stopped_quantity(grad_zfunctional,iterstop_list,choose_logy,...
-                                           method_array,iter_save,maxiter,linecolor_dict,displayname_dict);
-        %legend(plot_array, 'location', 'northeast');
-        title('Gradient gstar(b-Ax)')
+    subplot(2,2,1)
+
+    hold on
+
+    choose_logy = true;
+
+    medianplot_array = plot_minmax_median_quantiles(min_resAbz_mean_list,max_resAbz_mean_list,median_resAbz_mean_list,quant25_resAbz_mean_list,quant75_resAbz_mean_list,...
+                       choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+
+    legend(medianplot_array, 'location', 'northwest');
+
+    hold off
+
+    title('Stochastic approximation of ||Ax_k+b-z_k^*||')
+ 
+    
+    
+    % resATz_mean: stochastic approximation of ||ATz_k||
+    subplot(2,2,2)
+
+    hold on
+
+    choose_logy = true;
+
+    plot_minmax_median_quantiles(min_resATz_mean_list,max_resATz_mean_list,median_resATz_mean_list,quant25_resATz_mean_list,quant75_resATz_mean_list,...
+                       choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+                  
+    hold off
+
+    title('Stochastic approximation of ||ATz_k||')
+
+    
+    % true ||Ax_k+b-zstar_k||
+    subplot(2,2,3)
+
+    hold on
+
+    choose_logy = true;
+
+    plot_minmax_median_quantiles(min_resAbz_list,max_resAbz_list,median_resAbz_list,quant25_resAbz_list,quant75_resAbz_list,...
+                       choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+
+    hold off
+
+    title('||Ax_k+b-z_k^*||')
+    
+    
+    
+    subplot(2,2,4)
+
+    hold on
+
+    choose_logy = true;
+
+    plot_minmax_median_quantiles(min_resATz_list,max_resATz_list,median_resATz_list,quant25_resATz_list,quant75_resATz_list,...
+                       choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+
+    hold off
+
+    title('||ATz_k||')
+    
+    
+    
+    
+    
+    
+    
+    %% Plot error quantities after stopping for the last iterate x_k for the last instance
+      % (only for SREK and ESREK method, each method in a single plot)
+       
+    for method_counter = 1:length(method_array)
         
-        % plot stopped lsres
-        subplot(2,2,3)
-        plot_array = plot_stopped_quantity(lsres,iterstop_list,choose_logy,...
-                                           method_array,iter_save,maxiter,linecolor_dict,displayname_dict);
-        %legend(plot_array, 'location', 'northeast');
-        title('Gradient of least squares function')
+        % only plot stopping iteration after
+        if any( strcmp( method_array{method_counter}, {'srek','esrek'} )  )
         
-        % plot stopped reconstruction error 
-        subplot(2,2,4)
-        plot_array = plot_stopped_quantity(err_to_sparse,iterstop_list,choose_logy,...
-                                           method_array,iter_save,maxiter,linecolor_dict,displayname_dict);
-        %legend(plot_array, 'location', 'northeast');        
-        title('Distance to sparse solution (RegBP)')
+            figure
+
+            sgtitle(['Errors and stopping for the last random instance, ' method_array{method_counter} ' method'])
+
+            % plot stopped res
+            subplot(2,2,1)
+            plot_stopped_quantity(res,iterstop_list,choose_logy,...
+                                               method_array,method_counter,iter_save,maxiter);
+            title('Residual')
+
+            % plot stopped grad z functional
+            subplot(2,2,2)
+            plot_stopped_quantity(grad_zfunctional,iterstop_list,choose_logy,...
+                                               method_array,method_counter,iter_save,maxiter);
+            title('Gradient gstar(b-Ax)')
+
+            % plot stopped lsres
+            subplot(2,2,3)
+            plot_stopped_quantity(lsres,iterstop_list,choose_logy,...
+                                               method_array,method_counter,iter_save,maxiter);
+            title('Gradient of least squares function')
+
+            % plot stopped reconstruction error 
+            subplot(2,2,4)
+            plot_stopped_quantity(err_to_sparse,iterstop_list,choose_logy,...
+                                               method_array,method_counter,iter_save,maxiter);       
+            title('Distance to sparse solution (RegBP)')
+            
+        end
         
     end
 
 
+    
+    
     %% Plot entries of b_exact vs. and b xhat vs. the last iterate x_k 
     
     % b_exact vs. b
@@ -601,8 +674,8 @@ for repeats = 1:num_repeats
     end
         
     
-    for method_counter = 1:length(method_array)           
-        
+    for method_counter = 1:length(method_array)    
+          
         % plot last iterate
         figure
         x = x_last_test_instance(:,method_counter);
@@ -613,20 +686,24 @@ for repeats = 1:num_repeats
         stem(xhat,'color','blue'); 
         hold on 
         stem(x,'color','red');
-        title(['After all iterations: x_{hat} (blue), nnz_{hat}=', num2str(sp),' , x (red), nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
-        
-        % plot iterate after stopping
-        figure
-        x = xstop_list(:,num_repeats,method_counter);
-        if ~real_setting  % plot absolute values
-            xhat = abs(xhat);
-            x = abs(x);
-        end        
-        stem(xhat,'color','blue'); 
-        hold on
-        stem(x,'color','red');
-        title(['After stopping: x_{hat} (blue) , nnz_{hat}=', num2str(sp),' , x (red) , nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
+        title(['After all iterations, ' method_array{method_counter} ' method: x_{hat} (blue), nnz_{hat}=', num2str(sp),' , x (red), nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
 
+        if any( strcmp( method_array{method_counter}, {'srek','esrek'} )  )
+            
+            % plot iterate after stopping
+            figure
+            x = xstop_list(:,num_repeats,method_counter);
+            if ~real_setting  % plot absolute values
+                xhat = abs(xhat);
+                x = abs(x);
+            end        
+            stem(xhat,'color','blue'); 
+            hold on
+            stem(x,'color','red');
+            title(['After stopping, ' method_array{method_counter} ' method: x_{hat} (blue) , nnz_{hat}=', num2str(sp),' , x (red) , nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
+
+        end
+        
     end
 
 

@@ -1,27 +1,23 @@
-function plot_array = plot_stopped_quantity(quantity,iterstop_list,choose_logy,method_array,iter_save,maxiter,linecolor_dict,displayname_dict)
+function plot_stopped_quantity(quantity,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter)
+      
+    iter_stop = iterstop_list(end,method_counter);
+    index_stop = ceil( iter_stop/iter_save ); 
+    num_iter_array = 1:iter_save:maxiter;
 
-plot_array = zeros(1, length(method_array));  % for legend
+    if choose_logy
+        plot(iter_stop, log10(quantity(index_stop,end,method_counter)), '.', 'markersize', 30, 'color', 'red');
+        hold on
+        plot(num_iter_array, log10(quantity(:,end,method_counter)'), ...
+            'LineWidth',2,'DisplayName',method_array{method_counter}, 'color', 'blue');
 
-for i = 1:length(method_array)
-        
-        iter_stop = iterstop_list(end,i);
-        index_stop = ceil( iter_stop/iter_save ); 
-        num_iter_array = 1:iter_save:maxiter;
+    else
+        plot(iter_stop, quantity(index_stop,end,method_counter), '.', 'markersize', 30, 'color', 'red');
+        hold on        
+        plot(num_iter_array, quantity(:,end,method_counter)', ...
+            'LineWidth',2,'DisplayName',method_array{method_counter}, 'color', 'blue');                        
+    end            
 
-        if choose_logy
-            plot_array(i) = plot(iter_stop, log10(quantity(index_stop,end,i)), '.', 'markersize',30);
-            hold on
-            plot_array(i) = plot(num_iter_array, log10(quantity(:,end,i)'), ...
-                'LineWidth',2,'DisplayName',displayname_dict(method_array{i}));
-                        
-        else
-            plot_array(i) = plot(iter_stop, quantity(index_stop,end,i), '.', 'markersize',30);
-            hold on
-            plot_array(i) = plot(num_iter_array, quantity(:,end,i)', ...
-                'LineWidth',2,'DisplayName',displayname_dict(method_array{i}));                        
-        end            
-        
-end
-
+    
 
 end
+
