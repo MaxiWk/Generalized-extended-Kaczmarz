@@ -425,7 +425,7 @@ for repeats = 1:num_repeats
 
     figure
 
-    subplot(2,2,1)
+    subplot(1,3,1)
 
     hold on
 
@@ -442,7 +442,7 @@ for repeats = 1:num_repeats
 
 
 
-    subplot(2,2,3)
+    subplot(1,3,2)
 
     hold on
 
@@ -509,7 +509,7 @@ for repeats = 1:num_repeats
     %% Plot results for distance to the sparse solution (sol of reg BP problem)
 
 
-    subplot(2,2,2)
+    subplot(1,3,3)
 
     hold on 
 
@@ -529,8 +529,8 @@ for repeats = 1:num_repeats
 
 
 
-    %% Plot results for distance to the Moore-Penrose inverse solution 
-    
+    %% Plot results for distance to the Moore-Penrose  solution (sol of reg BP problem)
+    %{
     subplot(2,2,4)
 
     hold on 
@@ -544,7 +544,7 @@ for repeats = 1:num_repeats
     hold off                                                
 
     title([sprintf('Distance to Moore Penrose solution; m = %d, n = %d, s = %d, repeats = %d, sampling: ',m,n,sp,num_repeats) rowsamp])
-    
+    %}        
 
     
     
@@ -574,7 +574,7 @@ for repeats = 1:num_repeats
     
     
     % resATz_mean: stochastic approximation of ||ATz_k||
-    subplot(2,2,3)
+    subplot(2,2,2)
 
     hold on
 
@@ -589,7 +589,7 @@ for repeats = 1:num_repeats
 
     
     % true ||Ax_k+b-zstar_k||
-    subplot(2,2,2)
+    subplot(2,2,3)
 
     hold on
 
