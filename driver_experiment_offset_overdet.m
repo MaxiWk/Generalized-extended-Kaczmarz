@@ -5,8 +5,8 @@
 % with 'solvable, medium gaussian noise' 
 % unfortunately, in both cases the extended method gives more nonzero entries
 
-m = 500;  % 20
-n = 200;  % 50
+m = 200;  % 20 
+n = 500;  % 50
 sp = 5; 
 
 
@@ -15,7 +15,7 @@ num_repeats = 2;
 
 real_setting = true;
 
-maxiter = 5*1e5; % Number of iterations
+maxiter = 1e6; % Number of iterations
 number_data_points = 500;
 iter_save = floor(maxiter/number_data_points);  % each such number of iterations, a data point is added in the error plot
 
@@ -31,14 +31,16 @@ writeout = false;
 
 savestep = 1; 
 
-method_array = {'rek','srk','esrek','srek'};
+method_array = {'rek','srk','esrek','srek'}; %{'rek','srk','esrek','srek'};
 
-experiment_description =  'large impulsive noise'; 
-
-%experiment_description = 'rank deficient, only noise in R(A) complement, well conditioned A';
+%experiment_description = 'rank-deficient, only noise in R(A) complement';
 % with sigma_min = 1, sigma_max = 2 -> very fast convergence, ESREK best
+% Sparsity needs to be high enough: m=60, n=20, sp=5 (4) minimizer is not the chosen vector, but
+% is so for sp<4 
 
-%experiment_description = 'rank deficient, only noise in R(A) complement, well conditioned A and xhat'; 
+%experiment_description = 'rank deficient, noise split into R(A) and R(A) complement';
+
+%experiment_description = 'rank deficient, only noise in R(A) complement, well conditioned A'; 
 % with sigma_max = 2, xhat_min = 1 -> very fast
 % convergence, ESREK best, SREK improves very much tue to change in xhat_min, but ESREK surprisingly not
 

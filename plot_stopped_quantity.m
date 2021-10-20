@@ -5,16 +5,16 @@ function plot_stopped_quantity(quantity,iterstop_list,choose_logy,method_array,m
     num_iter_array = 1:iter_save:maxiter;
 
     if choose_logy
-        plot(iter_stop, log10(quantity(index_stop,end,method_counter)), '.', 'markersize', 30, 'color', 'red');
-        hold on
         plot(num_iter_array, log10(quantity(:,end,method_counter)'), ...
             'LineWidth',2,'DisplayName',method_array{method_counter}, 'color', 'blue');
+        hold on
+        plot(iter_stop, log10(quantity(index_stop,end,method_counter)), '.', 'markersize', 30, 'color', 'red');
 
-    else
-        plot(iter_stop, quantity(index_stop,end,method_counter), '.', 'markersize', 30, 'color', 'red');
-        hold on        
+    else    
         plot(num_iter_array, quantity(:,end,method_counter)', ...
-            'LineWidth',2,'DisplayName',method_array{method_counter}, 'color', 'blue');                        
+            'LineWidth',2,'DisplayName',method_array{method_counter}, 'color', 'blue');   
+        hold on        
+        plot(iter_stop, quantity(index_stop,end,method_counter), '.', 'markersize', 30, 'color', 'red');
     end            
 
     

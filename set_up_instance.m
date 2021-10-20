@@ -40,7 +40,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           
      
         
-     case 'rank-deficient, noise only in R(A) complement'
+     case 'rank-deficient, only noise in R(A) complement'
        
           % m<=n and least-squares solution shall be not unique (no full rank)          
           
@@ -62,8 +62,8 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           noise_rangeA_ortho = noiselev_rangeA_ortho* noise_rangeA_ortho/norm(noise_rangeA_ortho);
           b = b_exact + noise_rangeA_ortho;    
           
-          tol_resAbz = 1e-5;
-          tol_resATz = 1e-5; 
+          tol_resAbz = 10^(-4.5) *norm(b);
+          tol_resATz = 1e-6 *norm(b); 
           
           
    

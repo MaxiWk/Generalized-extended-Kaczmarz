@@ -54,19 +54,18 @@ fprintf('Experiment A, m=%d, n=%d, sp=%d, maxiter=%d, num_repeats=%d,\n',m,n,sp,
 num_methods = length(method_array); 
 [res, lsres, res_proj, lsres_proj, grad_zfunctional, err_to_sparse, err_to_moorepi, nonzero_entries]...
                      = deal( zeros(floor(maxiter/iter_save), num_repeats, num_methods) );
+err_to_sparse_stopped = zeros(num_repeats, num_methods);   
+err_to_sparse_end_div_stopped = zeros(num_repeats, num_methods); 
 x_last_test_instance = zeros(n,num_methods);
 [length_resAbz_sampled, length_resATz_sampled] = deal(stopcrit_sample_pars.length_resAbz_sampled,...
                                                              stopcrit_sample_pars.length_resATz_sampled);
 resAbz_sampled = zeros(1, stopcrit_sample_pars.length_resAbz_sampled);
 resATz_sampled = zeros(1, stopcrit_sample_pars.length_resATz_sampled);
 [resAbz_mean, resATz_mean] = deal( zeros(1,maxiter) );
-
 iterstop_list = zeros(num_repeats,num_methods);
 xstop_list = zeros(n, num_repeats, num_methods);
-
 [resAbz, resAT] = deal( zeros(floor(maxiter/iter_save), num_repeats, num_methods) );
 [resAbz_mean_list, resATz_mean_list] = deal( zeros(floor(maxiter/iter_save), num_repeats, num_methods) );
-
 time = zeros(num_repeats, num_methods);
 
 
@@ -215,9 +214,11 @@ for repeats = 1:num_repeats
 
                   iterstop_list(repeats,method_counter) = iter;
                   xstop_list(:,repeats,method_counter) = x;
+                  err_to_sparse_stopped(repeats,method_counter) = norm(x-problem_data.xhat);                 
                   stopped = true;                  
                   
                   %break; 
+                  %err_to_sparse_end_div_stopped(repeats,method_counter) = 1;
 
               end
 
@@ -295,18 +296,24 @@ for repeats = 1:num_repeats
 
           end % end for loop over iteration
 
-          
-          
-        time(repeats, method_counter) = toc;
+         
 
         if ~stopped
             iterstop_list(repeats,method_counter) = maxiter;
             xstop_list(:,repeats,method_counter) = x;
+            err_to_sparse_stopped(repeats,method_counter) = err_to_sparse(end,repeats,method_counter);
+            err_to_sparse_end_div_stopped(repeats,method_counter) = 1;
         end
+        
+        % after all iterations
+        time(repeats, method_counter) = toc;
         
         if last_repeat 
             x_last_test_instance(:,method_counter) = x;
         end
+        
+        err_to_sparse_end_div_stopped(repeats,method_counter)...
+            = err_to_sparse(end,repeats,method_counter) / err_to_sparse_stopped(repeats,method_counter);
     
       end  % end for loop over method
 
@@ -742,10 +749,12 @@ for repeats = 1:num_repeats
         headings{i} = num2str(i);
     end
     methods = cell2struct(headings,method_array,2);
+    
     data = struct('methods', methods, 'iterstop_list', iterstop_list, 'xstop_list', xstop_list, ...
                   'max_res', max_res, 'min_res', min_res, 'median_res', median_res, 'quant25_res', quant25_res, 'quant75_res', quant75_res,...
                   'max_lsres', max_lsres, 'min_lsres', min_lsres, 'median_lsres', median_lsres, 'quant25_lsres', quant25_lsres, 'quant75_lsres', quant75_lsres,...
                   'max_err_to_sparse', max_err_to_sparse, 'min_err_to_sparse', min_err_to_sparse, 'median_err_to_sparse', median_err_to_sparse, 'quant25_err_to_sparse', quant25_err_to_sparse, 'quant75_err_to_sparse', quant75_err_to_sparse,...
+                  'err_to_sparse_stopped', err_to_sparse_stopped, 'err_to_sparse_end_div_stopped', err_to_sparse_end_div_stopped, ...
                   'max_err_to_moorepi', max_err_to_moorepi, 'min_err_to_moorepi', min_err_to_moorepi, 'median_err_to_moorepi', median_err_to_moorepi, 'quant25_err_to_moorepi', quant25_err_to_moorepi, 'quant75_err_to_moorepi', quant75_err_to_moorepi,...
                   'max_nonzero_entries', max_nonzero_entries, 'min_nonzero_entries', min_nonzero_entries, 'median_nonzero_entries', median_nonzero_entries, 'quant25_nonzero_entries', quant25_nonzero_entries, 'quant75_nonzero_entries', quant75_nonzero_entries);
 
