@@ -421,9 +421,11 @@ for repeats = 1:num_repeats
 
 
 
-    %% plot results for residuals
-
+    %% plot errors
+    
     figure
+    
+    sgtitle(sprintf('Errors, m = %d, n = %d, s = %d, repeats = %d, sampling: ',m,n,sp,num_repeats));
 
     subplot(2,2,1)
 
@@ -442,7 +444,7 @@ for repeats = 1:num_repeats
 
 
 
-    subplot(2,2,3)
+    subplot(2,2,2)
 
     hold on
 
@@ -509,7 +511,7 @@ for repeats = 1:num_repeats
     %% Plot results for distance to the sparse solution (sol of reg BP problem)
 
 
-    subplot(2,2,2)
+    subplot(2,2,3)
 
     hold on 
 
@@ -543,7 +545,7 @@ for repeats = 1:num_repeats
                                                     quantcolor_dict,linecolor_dict,displayname_dict);
     hold off                                                
 
-    title([sprintf('Distance to Moore Penrose solution; m = %d, n = %d, s = %d, repeats = %d, sampling: ',m,n,sp,num_repeats) rowsamp])
+    title('Distance to Moore Penrose solution')
     
 
     
@@ -626,42 +628,55 @@ for repeats = 1:num_repeats
     %% Plot error quantities after stopping for the last iterate x_k for the last instance
       % (only for SREK and ESREK method, each method in a single plot)
        
-    for method_counter = 1:length(method_array)
-        
-        % only plot stopping iteration after
-        if any( strcmp( method_array{method_counter}, {'srek','esrek'} )  )
-        
-            figure
 
-            sgtitle(['Errors and stopping for the last random instance, ' method_array{method_counter} ' method'])
 
-            % plot stopped res
-            subplot(2,2,1)
-            plot_stopped_quantity(res,iterstop_list,choose_logy,...
-                                               method_array,method_counter,iter_save,maxiter);
-            title('Residual')
+    % only plot stopping iteration after
+    
+    figure
 
-            % plot stopped grad z functional
-            subplot(2,2,2)
-            plot_stopped_quantity(grad_zfunctional,iterstop_list,choose_logy,...
-                                               method_array,method_counter,iter_save,maxiter);
-            title('Gradient gstar(b-Ax)')
+    sgtitle('Errors for one random instance, circle indicates value at stopped iteration')
 
-            % plot stopped lsres
-            subplot(2,2,3)
-            plot_stopped_quantity(lsres,iterstop_list,choose_logy,...
-                                               method_array,method_counter,iter_save,maxiter);
-            title('Gradient of least squares function')
+    % plot stopped res
+    subplot(2,2,1)
+    hold on
+    choose_logy = true;
+    plot_stopped_quantity(res,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
+    title('Residual')
 
-            % plot stopped reconstruction error 
-            subplot(2,2,4)
-            plot_stopped_quantity(err_to_sparse,iterstop_list,choose_logy,...
-                                               method_array,method_counter,iter_save,maxiter);       
-            title('Distance to sparse solution (RegBP)')
-            
-        end
-        
-    end
+    % plot stopped grad z functional
+    subplot(2,2,2)
+    hold on
+    choose_logy = true;
+    plot_stopped_quantity(grad_zfunctional,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
+    title('Gradient gstar(b-Ax)')
+
+    % plot stopped lsres
+    %{
+    subplot(2,2,3)
+    plot_stopped_quantity(lsres,iterstop_list,choose_logy,...
+                                       method_array,method_counter,iter_save,maxiter);
+    title('Gradient of least squares function')
+    %}
+
+    
+    % plot stopped reconstruction error 
+    subplot(2,2,3)
+    hold on
+    choose_logy = true;
+    plot_stopped_quantity(err_to_sparse,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
+    title('Distance to sparse solution (RegBP)')
+    
+    
+    % plot error to Moore Penrose inverse solution
+    subplot(2,2,4)
+    hold on
+    choose_logy = true;
+    plot_stopped_quantity(err_to_moorepi,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
+    title('Distance to Moore-Penrose inverse solution')
+
+
+
+
 
 
     

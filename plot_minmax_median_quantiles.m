@@ -5,6 +5,7 @@
       num_methods = length(method_array);
 
       for i = 1:num_methods
+          
           minmaxcolor_i = minmaxcolor_dict(method_array{i});
 
           if choose_logy

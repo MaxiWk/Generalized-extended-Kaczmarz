@@ -32,7 +32,7 @@ method_array = {'rek','srk','esrek','srek'}; %{'rek','srk','esrek','srek'};
 % Sparsity needs to be high enough: m=60, n=20, sp=5 (4) minimizer is not the chosen vector, but
 % is so for sp<4 
 
-experiment_description = 'rank deficient, noise split into R(A) and R(A) complement';
+experiment_description = 'full rank, only noise in the R(A) complement';
 
 %experiment_description = 'rank deficient, only noise in R(A) complement, well conditioned A'; 
 % with sigma_max = 2, xhat_min = 1 -> very fast
