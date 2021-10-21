@@ -52,7 +52,7 @@ fprintf('Experiment A, m=%d, n=%d, sp=%d, maxiter=%d, num_repeats=%d,\n',m,n,sp,
 
 % Initialize storage arrays for results
 num_methods = length(method_array); 
-[res, lsres, res_proj, lsres_proj, grad_zfunctional, err_to_sparse, err_to_moorepi, nonzero_entries]...
+[res, lsres, grad_zfunctional, err_to_sparse, err_to_moorepi, nonzero_entries]...
                      = deal( zeros(floor(maxiter/iter_save), num_repeats, num_methods) );
 err_to_sparse_stopped = zeros(num_repeats, num_methods);   
 err_to_sparse_end_div_stopped = zeros(num_repeats, num_methods); 
@@ -64,11 +64,12 @@ resATz_sampled = zeros(1, stopcrit_sample_pars.length_resATz_sampled);
 [resAbz_mean, resATz_mean] = deal( zeros(1,maxiter) );
 iterstop_list = zeros(num_repeats,num_methods);
 xstop_list = zeros(n, num_repeats, num_methods);
-[resAbz, resAT] = deal( zeros(floor(maxiter/iter_save), num_repeats, num_methods) );
+[resAbz_list, resATz_list] = deal( zeros(floor(maxiter/iter_save), num_repeats, num_methods) );
 [resAbz_mean_list, resATz_mean_list] = deal( zeros(floor(maxiter/iter_save), num_repeats, num_methods) );
 time = zeros(num_repeats, num_methods);
 
-
+min_rel_cond_A = inf;
+max_rel_cond_A = -inf;
 
 
 
@@ -84,9 +85,12 @@ for repeats = 1:num_repeats
     randn('state',repeats);
 
     problem_data = set_up_instance(m,n,sp,real_setting,experiment_description);
-    [A,b,b_exact,xhat] = deal( problem_data.A, problem_data.b, problem_data.b_exact, problem_data.xhat );
+    [A,rel_cond_A,b,b_exact,xhat] = deal( problem_data.A, problem_data.rel_cond_A, problem_data.b, problem_data.b_exact, problem_data.xhat );
     [tol_resAbz, tol_resATz] = deal( problem_data.tol_resAbz, problem_data.tol_resATz );
     %rankA = rank(A);
+    
+    min_rel_cond_A = min(rel_cond_A, min_rel_cond_A); 
+    max_rel_cond_A = max(rel_cond_A, max_rel_cond_A);
     
     if disp_instance 
       disp('')
@@ -182,7 +186,7 @@ for repeats = 1:num_repeats
         
         
         stopped = false;
-
+        
         for iter = 1:maxiter
 
               %%%%%%%%%%%%
@@ -294,7 +298,7 @@ for repeats = 1:num_repeats
 
               end 
 
-          end % end for loop over iteration
+        end % end for loop over iteration
 
          
 
@@ -315,11 +319,11 @@ for repeats = 1:num_repeats
         err_to_sparse_end_div_stopped(repeats,method_counter)...
             = err_to_sparse(end,repeats,method_counter) / err_to_sparse_stopped(repeats,method_counter);
     
-      end  % end for loop over method
+    end  % end for loop over method
 
-    end  % end for loop over repeats
+end  % end for loop over repeats
 
-    disp('')  % new line
+disp('')  % new line
 
 
 
@@ -431,7 +435,7 @@ for repeats = 1:num_repeats
 
     hold on
 
-    choose_logy = true;
+    choose_logy = false;
 
     medianplot_array = plot_minmax_median_quantiles(min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
 
@@ -587,7 +591,7 @@ for repeats = 1:num_repeats
                   
     hold off
 
-    title('Stochastic approximation of ||ATz_k||')
+    title('Stochastic approximation of ||A^Tz_k||')
 
     
     % true ||Ax_k+b-zstar_k||
@@ -617,7 +621,7 @@ for repeats = 1:num_repeats
 
     hold off
 
-    title('||ATz_k||')
+    title('||A^Tz_k||')
     
     
     
@@ -639,9 +643,10 @@ for repeats = 1:num_repeats
     % plot stopped res
     subplot(2,2,1)
     hold on
-    choose_logy = true;
-    plot_stopped_quantity(res,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
+    choose_logy = false;
+    medianplot_array = plot_stopped_quantity(res,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
     title('Residual')
+    legend(medianplot_array, 'location', 'northwest');
 
     % plot stopped grad z functional
     subplot(2,2,2)
@@ -771,7 +776,8 @@ for repeats = 1:num_repeats
                   'max_err_to_sparse', max_err_to_sparse, 'min_err_to_sparse', min_err_to_sparse, 'median_err_to_sparse', median_err_to_sparse, 'quant25_err_to_sparse', quant25_err_to_sparse, 'quant75_err_to_sparse', quant75_err_to_sparse,...
                   'err_to_sparse_stopped', err_to_sparse_stopped, 'err_to_sparse_end_div_stopped', err_to_sparse_end_div_stopped, ...
                   'max_err_to_moorepi', max_err_to_moorepi, 'min_err_to_moorepi', min_err_to_moorepi, 'median_err_to_moorepi', median_err_to_moorepi, 'quant25_err_to_moorepi', quant25_err_to_moorepi, 'quant75_err_to_moorepi', quant75_err_to_moorepi,...
-                  'max_nonzero_entries', max_nonzero_entries, 'min_nonzero_entries', min_nonzero_entries, 'median_nonzero_entries', median_nonzero_entries, 'quant25_nonzero_entries', quant25_nonzero_entries, 'quant75_nonzero_entries', quant75_nonzero_entries);
+                  'max_nonzero_entries', max_nonzero_entries, 'min_nonzero_entries', min_nonzero_entries, 'median_nonzero_entries', median_nonzero_entries, 'quant25_nonzero_entries', quant25_nonzero_entries, 'quant75_nonzero_entries', quant75_nonzero_entries,...
+                  'min_rel_cond_A', min_rel_cond_A, 'max_rel_cond_A', max_rel_cond_A);
 
 
 
@@ -806,6 +812,9 @@ for repeats = 1:num_repeats
           end
         end
     end
+
+
+
 
 
 

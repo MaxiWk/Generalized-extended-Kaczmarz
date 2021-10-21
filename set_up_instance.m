@@ -12,6 +12,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
      case 'full rank, solvable, no noise'
        
           A = randn(m,n);           % Operator
+          rel_cond_A = compute_rel_cond(A,min(m,n));
           xhat = sparserandn(n,sp);  % true solution
           b_exact = A*xhat;               % exact data
           b = b_exact;
@@ -19,25 +20,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           tol_resAbz = 1e-7 * norm(b);
           tol_resATz = 1e-7 * norm(b); 
 
-          
-          
-     case 'full rank, only noise in the R(A) complement'
-       
-          noiselev_rangeA_ortho = 0.5;
-          
-          A = randn(m,n);           % Operator
-          xhat = sparserandn(n,sp);  % true solution
-          b_exact = A*xhat;               % exact data
-          N = null(A');             % null(A') = orthogonal complement of R(A)
-          v = randn(size(N,2),1);
-          noise_rangeA_ortho = N*v;
-          noise_rangeA_ortho = noiselev_rangeA_ortho* noise_rangeA_ortho/norm(noise_rangeA_ortho);
-          b = b_exact + noise_rangeA_ortho;
-          
-          tol_resAbz = 1e-7 * norm(b);
-          tol_resATz = 1e-7 * norm(b);  
-          
-          
+            
      
         
      case 'rank-deficient, only noise in R(A) complement'
@@ -51,6 +34,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           sing_values_data.mu = 0; sing_values_data.stddev = 1;
           
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
                  
           xhat = sparserandn(n,sp);  % true solution          
           b_exact = A*xhat;               % exact data
@@ -62,8 +46,8 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           noise_rangeA_ortho = noiselev_rangeA_ortho* noise_rangeA_ortho/norm(noise_rangeA_ortho);
           b = b_exact + noise_rangeA_ortho;    
           
-          tol_resAbz = 10^(-4.5) *norm(b);
-          tol_resATz = 1e-6 *norm(b); 
+          tol_resAbz = 1e-4 *norm(b);
+          tol_resATz = 1e-4 *norm(b);
           
           
    
@@ -81,6 +65,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           sing_values_data.mu = 0; sing_values_data.stddev = 1;
           
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
                   
           xhat = sparserandn(n,sp);  % true solution          
           b_exact = A*xhat;               % exact data
@@ -104,7 +89,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           
           
     case 'rank deficient, only noise in R(A) complement, well conditioned A'
-       
+      
       noiselev_rangeA_ortho = 0.5;
       rank = round(min(m,n)/2);
       
@@ -112,6 +97,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
       sing_values_data.sigma_min = 1; sing_values_data.sigma_max = 2;
 
       A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+      rel_cond_A = compute_rel_cond(A,rank);
           
       xhat = sparserandn(n,sp);  % true solution
       b_exact = A*xhat;               % exact data
@@ -121,8 +107,8 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
       noise_rangeA_ortho = noiselev_rangeA_ortho* noise_rangeA_ortho/norm(noise_rangeA_ortho);
       b = b_exact + noise_rangeA_ortho;
 
-      tol_resAbz = 1e-7 * norm(b);
-      tol_resATz = 0.1;  
+      tol_resAbz = 1e-14*norm(b);
+      tol_resATz = 1e-14*norm(b);
           
  
     
@@ -137,6 +123,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
       rank = round(min(m,n)/2);
 
       A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+      rel_cond_A = compute_rel_cond(A,rank);
                
       % create xhat
 
@@ -159,8 +146,8 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
       
       b = b_exact + rangeA_ortho;
 
-      tol_resAbz = 1e-7 * norm(b);
-      tol_resATz = 0.1;  
+      tol_resAbz = 1e-12*norm(b);
+      tol_resATz = 1e-12*norm(b);
           
           
       
@@ -178,6 +165,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
       rank = round(min(m,n)/2);  
 
       A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+      rel_cond_A = compute_rel_cond(A,rank);
                           
       % create xhat
       xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max);
@@ -205,10 +193,11 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
          
        noiselev_rangeA_ortho = 5;
        noiselev_rangeA = 0.1;  % auch mal 0.1
-       r = 500;
+       rank = 500;
          
-       U=randn(m,r); V=[eye(r);dctmtx(r)];
+       U=randn(m,rank); V=[eye(rank);dctmtx(rank)];
        A=U*V';
+       rel_cond_A = compute_rel_cond(A,rank);
        
        xhat_min = 1;
        xhat_max = 6;
@@ -232,11 +221,13 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
        
        
        
+       
       case 'full rank, small gaussian noise'
    
           noiselev = 0.1;
      
           A = randn(m,n);           % Operator
+          rel_cond_A = compute_rel_cond(A,min(m,n));
           xhat = sparserandn(n,sp);  % true solution
           b_exact = A*xhat;               % exact data
           
@@ -253,6 +244,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           noiselev = 0.5;
           
           A = randn(m,n);           % Operator
+          rel_cond_A = compute_rel_cond(A,min(m,n));
           xhat = sparserandn(n,sp);  % true solution
           b_exact = A*xhat;               % exact data
           
@@ -269,6 +261,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           noiselev = 2;
           
           A = randn(m,n);           % Operator
+          rel_cond_A = compute_rel_cond(A,min(m,n));
           xhat = sparserandn(n,sp);  % true solution
           b_exact = A*xhat;               % exact data
           
@@ -285,6 +278,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           noiselev = 0.5;
           
           A = randn(m,n);           % Operator
+          rel_cond_A = compute_rel_cond(A,min(m,n));
           xhat = sparserandn(n,sp);  % true solution
           b_exact = A*xhat;               % exact data
           
@@ -305,6 +299,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           sing_values_data.mu = 0;
           sing_values_data.stddev = 1;
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
           xhat = sparserandn(n,sp);
           b_exact = A*xhat;
           
@@ -326,6 +321,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           sing_values_data.mu = 0; 
           sing_values_data.stddev = 1;
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
           xhat = sparserandn(n,sp);
           b_exact = A*xhat;
           
@@ -347,6 +343,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           sing_values_data.mu = 0; 
           sing_values_data.stddev = 1;
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
           xhat = sparserandn(n,sp);
           b_exact = A*xhat;
           
@@ -364,6 +361,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           noiselev_impulsive_noise_factor = 0.1;
 
           A = randn(m,n);                  
+          rel_cond_A = compute_rel_cond(A,min(m,n));
           xhat = sparserandn(n,sp);  % true solution          
           b_exact = A*xhat;               % exact data
           
@@ -391,7 +389,8 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           sing_values_data.mu = 0;
           sing_values_data.stddev = 1;
 
-          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);              
+          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
           xhat = sparserandn(n,sp);  % true solution          
           b_exact = A*xhat;               % exact data
           
@@ -419,6 +418,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           sing_values_data.sigma_max = 2;
 
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
                     
           xhat = sparserandn(n,sp);  % true solution          
           b_exact = A*xhat;               % exact data
@@ -448,6 +448,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           sing_values_data.sigma_max = 2;
 
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
                     
           xhat = sparserandn(n,sp);  % true solution          
           b_exact = A*xhat;               % exact data
@@ -477,6 +478,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           sing_values_data.sigma_max = 2;
 
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
                     
           xhat = sparserandn(n,sp);  % true solution          
           b_exact = A*xhat;          % exact data
@@ -504,7 +506,8 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           sing_values_data.distribution = 'uniform';
           sing_values_data.sigma_min = 1;
           sing_values_data.sigma_max = 2;
-          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);   
+          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
           
           xhat = sparserandn(n,sp);  % true solution          
           b_exact = A*xhat;          % exact data         
@@ -579,12 +582,27 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           xhat(nnz_ind)= xhat_min+ (xhat_max-xhat_min)*(rand(sp,1) +1i*rand(sp,1));
       end
       
-    end
+  end
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  function rel_cond_A = compute_rel_cond(A,rank)
+      s = svd(A);
+      s = s(1:rank);
+      if min(s) < eps
+          rel_cond_A = cond(A);
+      else
+          rel_cond_A = max(s)/min(s);
+      end
+  end
+
+
 
 
 
 
  problem_data.A = A; 
+ problem_data.rel_cond_A = rel_cond_A;
  problem_data.xhat = xhat;
  problem_data.b_exact = b_exact;
  problem_data.b = b;
