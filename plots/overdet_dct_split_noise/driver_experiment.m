@@ -9,7 +9,7 @@ num_repeats = 5;
 
 real_setting = true;
 
-maxiter = 3*1e5; % Number of iterations
+maxiter = 2*1e5; % Number of iterations
 number_data_points = 500;
 iter_save = floor(maxiter/number_data_points);  % each such number of iterations, a data point is added in the error plot
 
@@ -27,7 +27,7 @@ savestep = 1;
 
 method_array = {'rek','srk','esrek','srek'}; 
 
-%experiment_description = 'rank-deficient, only noise in R(A) complement';
+experiment_description = 'rank-deficient, only noise in R(A) complement';
 % maxiter = 4*1e6
 % Sparsity needs to be high enough: m=60, n=20, sp=5 (4) minimizer is not the chosen vector, but
 % is so for sp<4 
@@ -38,7 +38,7 @@ method_array = {'rek','srk','esrek','srek'};
 % with sigma_max = 2, sigma_min = 1 -> very fast with sigma_max = 100,
 % convergence, ESREK best, SREK improves very much tue to change in xhat_min, but ESREK surprisingly not
 
-experiment_description = 'rank deficient, only noise in R(A) complement, well conditioned A and xhat';
+%experiment_description = 'rank deficient, only noise in R(A) complement, well conditioned A and xhat';
 % with xhat_max = 6, xhat_min = 1 
 % slow convergence, SREK best, ESREK worse than SRK
 
@@ -57,11 +57,15 @@ stopcrit_sample_pars.length_resAbz_sampled = ceil(m/2);
 stopcrit_sample_pars.length_resATz_sampled = ceil(n/2);
 stopcrit_sample_pars.min_possible_iter_for_stopping = 4*max(m,n);
 
+
+%%%%%%%%%%%
 data = experiment(n,m,sp,real_setting,lambda_value,T,L_gstar,maxiter,num_repeats,iter_save,rowsamp,colsamp,1,...
                   writeout,disp_instance,savestep,stopcrit_sample_pars,method_array,experiment_description);
-                              
+%%%%%%%%%%%
 
-                              
+save('data.mat','data')
+folder_for_figures = plots/small_example;
+save_figures(folder_for_figures)                              
                               
                               
                               

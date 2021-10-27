@@ -4,12 +4,12 @@ n = 200;  % 200
 sp = 5; 
 
 
-num_repeats = 50; 
+num_repeats = 5; 
 
 
 real_setting = true;
 
-maxiter = 4*1e6; % Number of iterations
+maxiter = 5*1e6; % Number of iterations
 number_data_points = 500;
 iter_save = floor(maxiter/number_data_points);  % each such number of iterations, a data point is added in the error plot
 
@@ -27,14 +27,14 @@ savestep = 1;
 
 method_array = {'rek','srk','esrek','srek'}; 
 
-experiment_description = 'rank-deficient, only noise in R(A) complement';
+%experiment_description = 'rank-deficient, only noise in R(A) complement';
 % maxiter = 4*1e6
 % Sparsity needs to be high enough: m=60, n=20, sp=5 (4) minimizer is not the chosen vector, but
 % is so for sp<4 
 
 %experiment_description = 'rank deficient, noise split into R(A) and R(A) complement';
 
-%experiment_description = 'rank deficient, only noise in R(A) complement, well conditioned A'; % maxiter = 2*1e5
+experiment_description = 'rank deficient, only noise in R(A) complement, well conditioned A'; % maxiter = 2*1e5
 % with sigma_max = 2, xhat_min = 1 -> very fast
 % convergence, ESREK best, SREK improves very much tue to change in xhat_min, but ESREK surprisingly not
 

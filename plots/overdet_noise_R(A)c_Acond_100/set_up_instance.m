@@ -27,7 +27,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
        
           % m<=n and least-squares solution shall be not unique (no full rank)          
           
-          noise_factor_rangeA_ortho = 5;
+          noiselev_rangeA_ortho = 0.5;
           rank = round(min(m,n)/2);   % must be smaller than m = min(m,n)
           real_setting = true;
           sing_values_data.distribution = 'normal';
@@ -38,13 +38,12 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
                  
           xhat = sparserandn(n,sp);  % true solution          
           b_exact = A*xhat;               % exact data
-          noiselev = noise_factor_rangeA_ortho *norm(b_exact);
           
           % create offset with noise in the complement of R(A)
           N = null(A');             % null(A') = orthogonal complement of R(A)
           v = randn(size(N,2),1);
           noise_rangeA_ortho = N*v; 
-          noise_rangeA_ortho = noiselev *noise_rangeA_ortho /norm(noise_rangeA_ortho);
+          noise_rangeA_ortho = noiselev_rangeA_ortho* noise_rangeA_ortho/norm(noise_rangeA_ortho);
           b = b_exact + noise_rangeA_ortho;    
           
           tol_resAbz = 1e-4 *norm(b);
@@ -194,7 +193,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
          
        noiselev_rangeA_ortho = 5;
        noiselev_rangeA = 0.1;  % auch mal 0.1
-       rank = min(m,n)/2;
+       rank = 500;
          
        U=randn(m,rank); V=[eye(rank);dctmtx(rank)];
        A=U*V';
@@ -206,7 +205,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
        
        % create noisy b 
       
-       b_exact = A*xhat;         % exact data
+       b_exact = A*xhat;               % exact data
        N = null(A');             % null(A') = orthogonal complement of R(A)
        v = randn(size(N,2),1);
        rangeA_ortho = N*v;
@@ -403,8 +402,8 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           noise = randn(num_comp_noise,1);
           b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
           
-          tol_resAbz = noiselev_impulsive_noise_factor*noiselev_impulsive*1e-6;
-          tol_resATz = noiselev_impulsive_noise_factor*noiselev_impulsive*1e-3; 
+          tol_resAbz = noiselev_impulsive_noise_factor *noiselev_impulsive;
+          tol_resATz = 1e-5; 
           
     
           
@@ -432,8 +431,8 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           noise = randn(num_comp_noise,1);
           b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
           
-          tol_resAbz = noiselev_impulsive_noise_factor*noiselev_impulsive*1e-5;
-          tol_resATz = noiselev_impulsive_noise_factor*noiselev_impulsive*1e-3; 
+          tol_resAbz = noiselev_impulsive_noise_factor *noiselev_impulsive;
+          tol_resATz = 1e-5; 
           
           
           

@@ -27,7 +27,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
        
           % m<=n and least-squares solution shall be not unique (no full rank)          
           
-          noise_factor_rangeA_ortho = 5;
+          noiselev_rangeA_ortho = 0.5;
           rank = round(min(m,n)/2);   % must be smaller than m = min(m,n)
           real_setting = true;
           sing_values_data.distribution = 'normal';
@@ -38,13 +38,12 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
                  
           xhat = sparserandn(n,sp);  % true solution          
           b_exact = A*xhat;               % exact data
-          noiselev = noise_factor_rangeA_ortho *norm(b_exact);
           
           % create offset with noise in the complement of R(A)
           N = null(A');             % null(A') = orthogonal complement of R(A)
           v = randn(size(N,2),1);
           noise_rangeA_ortho = N*v; 
-          noise_rangeA_ortho = noiselev *noise_rangeA_ortho /norm(noise_rangeA_ortho);
+          noise_rangeA_ortho = noiselev_rangeA_ortho* noise_rangeA_ortho/norm(noise_rangeA_ortho);
           b = b_exact + noise_rangeA_ortho;    
           
           tol_resAbz = 1e-4 *norm(b);
