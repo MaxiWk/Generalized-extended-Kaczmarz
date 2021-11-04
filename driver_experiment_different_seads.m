@@ -33,8 +33,8 @@ writeout = false;
 
 savestep = 1; 
 
-%method_array = {'rek','srk','srek'}; 
-method_array = {'srek','srk'}; 
+%method_array = {'rek','srk','grek'}; 
+method_array = {'grek','srk'}; 
 
 %experiment_description = 'rank deficient, large b plus medium uniform noise';
 experiment_description = 'rank deficient, medium uniform noise';
@@ -42,13 +42,13 @@ experiment_description = 'rank deficient, medium uniform noise';
 
 median_res = zeros(maxiter,length(method_array));
 
-xhat_list_srek = zeros(n, num_rand_repeats, num_repeats);
-yhat_list_srek = zeros(m, num_rand_repeats, num_repeats);
+xhat_list_grek = zeros(n, num_rand_repeats, num_repeats);
+yhat_list_grek = zeros(m, num_rand_repeats, num_repeats);
 xhat_list_srk = zeros(n, num_rand_repeats, num_repeats);
 
-err_to_sparse_list_srek = zeros(num_rand_repeats, num_repeats);
-res_list_srek = zeros(num_rand_repeats, num_repeats);
-lsres_list_srek = zeros(num_rand_repeats, num_repeats);
+err_to_sparse_list_grek = zeros(num_rand_repeats, num_repeats);
+res_list_grek = zeros(num_rand_repeats, num_repeats);
+lsres_list_grek = zeros(num_rand_repeats, num_repeats);
 
 for rand_repeats = 1:num_rand_repeats
   
@@ -72,15 +72,15 @@ for rand_repeats = 1:num_rand_repeats
   res = data.res;
   lsres = data.lsres;
   
-  % save xhat's (srek, srk)
-  xhat_list_srek(:,rand_repeats,:) = xhat_list(:,:,1); 
-  yhat_list_srek(:,rand_repeats,:) = yhat_list(:,:,1); 
+  % save xhat's (grek, srk)
+  xhat_list_grek(:,rand_repeats,:) = xhat_list(:,:,1); 
+  yhat_list_grek(:,rand_repeats,:) = yhat_list(:,:,1); 
   xhat_list_srk(:,rand_repeats,:) =  xhat_list(:,:,2);   
   
-  % save errors for srek
-  err_to_sparse_list_srek(rand_repeats, :) = err_to_sparse(end,:,1);
-  res_list_srek(rand_repeats,:) = res(end,:,1);
-  lsres_list_srek(rand_repeats,:) = lsres(end,:,1);
+  % save errors for grek
+  err_to_sparse_list_grek(rand_repeats, :) = err_to_sparse(end,:,1);
+  res_list_grek(rand_repeats,:) = res(end,:,1);
+  lsres_list_grek(rand_repeats,:) = lsres(end,:,1);
   
 end
                    

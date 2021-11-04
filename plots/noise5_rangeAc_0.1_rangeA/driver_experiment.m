@@ -33,7 +33,7 @@ method_array = {'rek','srk','grek'};
 %experiment_description = 'rank-deficient, large noise in R(A) complement';
 % noise5_rangeAc
 
-experiment_description = 'rank deficient, noise split into R(A) and large noise in R(A) complement';
+experiment_description = 'rank deficient, noise split into R(A) and R(A) complement';
 
 %experiment_description = 'rank deficient, only noise in R(A) complement, well conditioned A'; % maxiter = 2*1e5
 % with sigma_max = 2, sigma_min = 1 -> very fast with sigma_max = 100,

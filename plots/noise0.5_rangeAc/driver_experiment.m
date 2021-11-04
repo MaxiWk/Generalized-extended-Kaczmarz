@@ -1,4 +1,4 @@
-dir_to_folder_with_figures = 'plots/noise0.5_rangeAc_0.1_rangeA';
+dir_to_folder_with_figures = 'plots/noise0.5_rangeAc';
 
 m = 500;  % 500 
 n = 200;  % 200
@@ -9,7 +9,7 @@ num_repeats = 50;  % 5
 
 real_setting = true;
 
-maxiter = 5e6; % Number of iterations % 5e6
+maxiter = 2e6; % Number of iterations
 number_data_points = 500;
 iter_save = floor(maxiter/number_data_points);  % each such number of iterations, a data point is added in the error plot
 
@@ -27,13 +27,13 @@ savestep = 1;
 
 method_array = {'rek','srk','grek'}; 
 
-%experiment_description = 'rank-deficient, medium noise in R(A) complement';
+experiment_description = 'rank-deficient, medium noise in R(A) complement';
 % noise0.5_rangeAc
 
 %experiment_description = 'rank-deficient, large noise in R(A) complement';
 % noise5_rangeAc
 
-experiment_description = 'rank deficient, noise split into R(A) and large noise in R(A) complement';
+%experiment_description = 'rank deficient, noise split into R(A) and R(A) complement';
 
 %experiment_description = 'rank deficient, only noise in R(A) complement, well conditioned A'; % maxiter = 2*1e5
 % with sigma_max = 2, sigma_min = 1 -> very fast with sigma_max = 100,

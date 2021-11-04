@@ -51,8 +51,8 @@ savestep = 1;
 
 method_array = {'rek','srk','grek'}; 
 
-%experiment_description = 'impulsive noise, rank-deficient, A with unif distr sv, well-conditioned A and xhat';
-experiment_description = 'impulsive noise, rank-deficient, A with unif distr sv, bad-conditioned A';
+%experiment_description = 'impulsive noise, rank deficient';
+experiment_description = 'impulsive noise, rank-deficient, A with unif distr sv, well-conditioned A and xhat';
 
 median_res = zeros(maxiter,length(method_array));
 

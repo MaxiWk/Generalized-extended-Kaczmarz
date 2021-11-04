@@ -27,7 +27,7 @@ function data = experiment(n,m,sp,real_setting,lambda_value,T,L_gstar,maxiter,nu
 
 % methods: Cell array with methods given as strings: 
 % 'rk': Kaczmarz, 'srk': Sparse Randomized Kaczmarz, 'esrk': Exact step Sparse Kaczmarz, 
-% 'srek': Sparse Randomized Extended Kaczmarz, 'esrek': Exact step Sparse
+% 'grek': (Generalized) Sparse Randomized Extended Kaczmarz, 'egrek': Exact step Sparse
 % Randomized Extended Kaczmarz
 
 % Some standard parameters for an experiment:
@@ -117,6 +117,7 @@ for repeats = 1:num_repeats
     norma = sum(A.^2,2);      % squared norms of rows of A
     norma_col = sum(A.^2,1);  % squared norms of cols of A
     norm_ATb = norm(A'*b);    % for relative least squares residual
+    norm_b = norm(b);
     
     
     % define functions which sample from the row and column indices 
@@ -200,12 +201,12 @@ for repeats = 1:num_repeats
               %%%%%%%%%%%%
               % 2.: check stopping criterion
 
-              resAbz_sampled(iter) = a'*x-b(r)+zdual(r);
+              resAbz_sampled(iter) = (a'*x-b(r)+zdual(r)) / norm_b;
               first_iter_with_row_samples = max(1, iter-length_resAbz_sampled+1);
               actual_length_resAbz_sampled = iter - first_iter_with_row_samples + 1;
               resAbz_mean(iter) = norm(resAbz_sampled(first_iter_with_row_samples:iter)) *sqrt(length_resAbz_sampled/max(1,actual_length_resAbz_sampled));
               
-              resATz_sampled(iter) = c'*z;
+              resATz_sampled(iter) = c'*z / norm_b;
               first_iter_with_col_samples = max(1,iter-length_resATz_sampled+1);
               actual_length_resATz_sampled = iter - first_iter_with_col_samples + 1;
               resATz_mean(iter) = norm(resATz_sampled(first_iter_with_col_samples:iter)) * sqrt(length_resATz_sampled/max(1,actual_length_resATz_sampled));
@@ -217,7 +218,7 @@ for repeats = 1:num_repeats
 
                   iterstop_list(repeats,method_counter) = iter;
                   xstop_list(:,repeats,method_counter) = x;
-                  err_to_sparse_stopped(repeats,method_counter) = norm(x-problem_data.xhat);                 
+                  err_to_sparse_stopped(repeats,method_counter) = norm(x-xhat)/norm(xhat);                 
                   stopped = true;                  
                   
                   %break; 
@@ -231,16 +232,16 @@ for repeats = 1:num_repeats
               
               if mod(iter, iter_save) == 0  
                 %disp(num2str(norm(x-xmoorepi)));  %%%%%%%
-                res(iter_save_counter, repeats, method_counter) = norm(A*x-b)/norm(b);
+                res(iter_save_counter, repeats, method_counter) = norm(A*x-b)/norm_b;
                 %lsres(iter_save_counter, repeats, method_counter) = norm(A'*(A*x-A*xhat))/norm_ATb;
-                %res_proj(iter_save_counter, repeats, method_counter) = norm(A*x - proj_b)/norm(b);
+                %res_proj(iter_save_counter, repeats, method_counter) = norm(A*x - proj_b)/norm_b;
                 lsres(iter_save_counter, repeats, method_counter) = norm(A'*(A*x-b))/norm_ATb;
                 %lsres_proj(iter_save_counter, repeats, method_counter) = norm(A'*(A*x - proj_b))/norm_ATb; 
                 grad_zfunctional(iter_save_counter, repeats, method_counter) = norm(A'*T(b-A*x))/norm_ATb;
                 err_to_moorepi(iter_save_counter, repeats, method_counter) = norm(x-xmoorepi)/norm(xmoorepi);
                 err_to_sparse(iter_save_counter, repeats, method_counter) = norm(x-xhat)/norm(xhat);
-                resAbz_list(iter_save_counter, repeats, method_counter) = norm(A*x-b+zdual)/norm(b);
-                resATz_list(iter_save_counter, repeats, method_counter) = norm(A'*z);
+                resAbz_list(iter_save_counter, repeats, method_counter) = norm(A*x-b+zdual)/norm_b;
+                resATz_list(iter_save_counter, repeats, method_counter) = norm(A'*z)/norm_b;
                 resAbz_mean_list(iter_save_counter, repeats, method_counter) = resAbz_mean(iter);
                 resATz_mean_list(iter_save_counter, repeats, method_counter) = resATz_mean(iter);
                 tol_zero = 1e-5;   % we count entries with abs value > tol_zero
@@ -273,14 +274,14 @@ for repeats = 1:num_repeats
                   x = x -(a'*x-b(r)+zdual(r))/norma(r)*a;
 
                 % Sparse Extended Kaczmarz 
-                case 'srek'
+                case 'grek'
                   zdual = zdual - (c'*z)/(L_gstar*norma_col(s))*c;
                   z = T(zdual);
                   xdual = xdual -(a'*x-b(r)+zdual(r))/norma(r)*a;
                   x = S(xdual);  
-
+                  
                 % Sparse Extended Kaczmarz with exact step
-                case 'esrek'
+                case 'egrek'
                   zdual = zdual - (c'*z)/(L_gstar*norma_col(s))*c;
                   z = T(zdual);
                   [x,xdual] = linesearch_shrinkage(x,xdual,a,b(r)-zdual(r),lambda);
@@ -353,8 +354,8 @@ disp('')  % new line
     linecolor_dict('srk') = 'b';
     linecolor_dict('esrk') = 'y';
     linecolor_dict('rek') = 'c';
-    linecolor_dict('srek') = 'r';
-    linecolor_dict('esrek') = 'g';
+    linecolor_dict('grek') = 'r';
+    linecolor_dict('egrek') = 'g';
     %linecolor_dict('det_sek') = 'c';
     linecolor_dict('lin_breg') = 'k';
 
@@ -363,8 +364,8 @@ disp('')  % new line
     minmaxcolor_dict('srk') = lightblue;
     minmaxcolor_dict('esrk') = lightyellow;
     minmaxcolor_dict('rek') = lightcyan;
-    minmaxcolor_dict('srek') = lightred;
-    minmaxcolor_dict('esrek') = lightgreen;
+    minmaxcolor_dict('grek') = lightred;
+    minmaxcolor_dict('egrek') = lightgreen;
     %minmaxcolor_dict('det_sek') = lightcyan;
     minmaxcolor_dict('lin_breg') = lightgray; 
 
@@ -373,8 +374,8 @@ disp('')  % new line
     quantcolor_dict('srk') = mediumblue;
     quantcolor_dict('esrk') = mediumyellow;
     quantcolor_dict('rek') = mediumcyan;
-    quantcolor_dict('srek') = mediumred; 
-    quantcolor_dict('esrek') = mediumgreen;
+    quantcolor_dict('grek') = mediumred; 
+    quantcolor_dict('egrek') = mediumgreen;
     %quantcolor_dict('det_sek') = mediumcyan; 
     quantcolor_dict('lin_breg') = mediumgray;
 
@@ -383,8 +384,8 @@ disp('')  % new line
     displayname_dict('srk') = 'SRK';
     displayname_dict('esrk') = 'ESRK';
     displayname_dict('rek') = 'Extended Kaczmarz';
-    displayname_dict('srek') = 'ExSRK'; 
-    displayname_dict('esrek') = 'ExSRK with ESRK stepsize';
+    displayname_dict('grek') = 'GREK'; 
+    displayname_dict('egrek') = 'GREK with ESRK stepsize';
     displayname_dict('lin_breg') = 'Linearized Bregman method';
 
 
@@ -430,30 +431,30 @@ disp('')  % new line
     
     sgtitle(sprintf('Errors, m = %d, n = %d, s = %d, repeats = %d, sampling: ',m,n,sp,num_repeats));
 
-    subplot(2,2,1)
+    subplot(1,3,1)
 
     hold on
 
     choose_logy = false;
 
-    medianplot_array = plot_minmax_median_quantiles(min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+    medianplot_array = plot_minmax_median_quantiles('-',min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
 
     legend(medianplot_array, 'location', 'northwest');
 
     hold off
 
-    title('Residual')
+    title('$$\|b-Ax_k\|_2/\|b\|_2$$','Interpreter','latex')
 
 
 
 
-    subplot(2,2,2)
+    subplot(1,3,2)
 
     hold on
 
     choose_logy = true;
 
-    medianplot_array = plot_minmax_median_quantiles(min_grad_zfunctional,max_grad_zfunctional,median_grad_zfunctional,...
+    medianplot_array = plot_minmax_median_quantiles('-',min_grad_zfunctional,max_grad_zfunctional,median_grad_zfunctional,...
                                                     quant25_grad_zfunctional,quant75_grad_zfunctional,choose_logy, ...
                                                     method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
                                                     linecolor_dict,displayname_dict);
@@ -461,8 +462,7 @@ disp('')  % new line
 
     hold off
 
-    title('Gradient gstar(b-Ax)')
-
+    title('$$\|A^T\nabla g^*(b-Ax_k)\|_2/\|A^Tb\|_2$$','Interpreter','latex')
 
 
 
@@ -478,7 +478,7 @@ disp('')  % new line
 
     choose_logy = true;
 
-    medianplot_array = plot_minmax_median_quantiles(min_res_proj,max_res_proj,median_res_proj,quant25_res_proj,quant75_res_proj, choose_logy, method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+    medianplot_array = plot_minmax_median_quantiles('-',min_res_proj,max_res_proj,median_res_proj,quant25_res_proj,quant75_res_proj, choose_logy, method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
 
     hold off
 
@@ -498,7 +498,7 @@ disp('')  % new line
 
     choose_logy = true;
 
-    medianplot_array = plot_minmax_median_quantiles(min_lsres,max_lsres,median_lsres,quant25_lsres,quant75_lsres,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+    medianplot_array = plot_minmax_median_quantiles('-',min_lsres,max_lsres,median_lsres,quant25_lsres,quant75_lsres,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
 
     %legend(medianplot_array, 'location', 'southwest');
 
@@ -514,13 +514,13 @@ disp('')  % new line
     %% Plot results for distance to the sparse solution (sol of reg BP problem)
 
 
-    subplot(2,2,3)
+    subplot(1,3,3)
 
     hold on 
 
     choose_logy = true;
 
-    medianplot_array = plot_minmax_median_quantiles(min_err_to_sparse,max_err_to_sparse,median_err_to_sparse,...
+    medianplot_array = plot_minmax_median_quantiles('-',min_err_to_sparse,max_err_to_sparse,median_err_to_sparse,...
                                                     quant25_err_to_sparse,quant75_err_to_sparse, choose_logy,...
                                                     method_array,iter_save,maxiter,minmaxcolor_dict,...
                                                     quantcolor_dict,linecolor_dict,displayname_dict);
@@ -529,27 +529,27 @@ disp('')  % new line
 
     hold off                                                
 
-    title('Distance to sparse solution (RegBP)')
+    title('$$\|x-\hat x\|_2/\|\hat x\|_2$$','Interpreter','latex')
 
 
 
 
     %% Plot results for distance to the Moore-Penrose inverse solution 
-    
+    %{
     subplot(2,2,4)
 
     hold on 
 
     choose_logy = true;
 
-    medianplot_array = plot_minmax_median_quantiles(min_err_to_moorepi,max_err_to_moorepi,median_err_to_moorepi,...
+    medianplot_array = plot_minmax_median_quantiles('-',min_err_to_moorepi,max_err_to_moorepi,median_err_to_moorepi,...
                                                     quant25_err_to_moorepi,quant75_err_to_moorepi,choose_logy,...);
                                                     method_array,iter_save,maxiter,minmaxcolor_dict,...
                                                     quantcolor_dict,linecolor_dict,displayname_dict);
     hold off                                                
 
-    title('Distance to Moore Penrose solution')
-    
+    title('$$\|x-x^\dagger\|_2/\|x^\dagger\|_2$$','Interpreter','latex')
+    %}
 
     
     
@@ -558,94 +558,102 @@ disp('')  % new line
     
     %% Plot quantities for stopping criterion
     
-    method_counters_with_stopping = [find(strcmp(method_array,{'srek'})),...
-                                     find(strcmp(method_array,{'esrek'}))]; % plot this only for these methods
-    srek_method_array = {method_array{strcmp(method_array,{'srek'})},...
-                         method_array{strcmp(method_array,{'esrek'})}};
-    % resA_mean: stochastic approximation of ||A*x_k + b - zstar_k|| 
+    method_counters_with_stopping = [find(strcmp(method_array,{'grek'})),...
+                                     find(strcmp(method_array,{'egrek'}))]; % plot only for these methods
+    grek_method_array = {method_array{strcmp(method_array,{'grek'})},...
+                         method_array{strcmp(method_array,{'egrek'})}};
+   
+                     
+                     
+                     
     figure
+    
+    sgtitle(sprintf('Quantities for stopping criterion, solid line: deterministic one, \n dashed line: Stochastic substitute computed in the algorithm'))
 
-    subplot(2,2,1)
-
+    
+    
+    %  plot stochastic substitute for ||A*x_k + b - zstar_k||  together with ||A*x_k + b - zstar_k||
+    subplot(1,2,1)
     hold on
-
     choose_logy = true;
-
-    medianplot_array = plot_minmax_median_quantiles(...
+ 
+    medianplot_array = plot_minmax_median_quantiles('-',...
         min_resAbz_mean_list(:,method_counters_with_stopping),...
         max_resAbz_mean_list(:,method_counters_with_stopping),...
         median_resAbz_mean_list(:,method_counters_with_stopping),...
         quant25_resAbz_mean_list(:,method_counters_with_stopping),...
         quant75_resAbz_mean_list(:,method_counters_with_stopping),...
-        choose_logy,srek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
-
-    legend(medianplot_array, 'location', 'northwest');
-
-    hold off
-
-    title('Stochastic approximation of ||Ax_k+b-z_k^*||')
- 
+        choose_logy,grek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
     
-    
-    % resATz_mean: stochastic approximation of ||ATz_k||
-    subplot(2,2,3) 
-
-    hold on
-
-    choose_logy = true;
-
-    plot_minmax_median_quantiles(...
-        min_resATz_mean_list(:,method_counters_with_stopping),...
-        max_resATz_mean_list(:,method_counters_with_stopping),...
-        median_resATz_mean_list(:,method_counters_with_stopping),...
-        quant25_resATz_mean_list(:,method_counters_with_stopping),...
-        quant75_resATz_mean_list(:,method_counters_with_stopping),...
-        choose_logy,srek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
-                  
-    hold off
-
-    title('Stochastic approximation of ||A^Tz_k||')
-
-    
-    % true ||Ax_k+b-zstar_k||
-    subplot(2,2,2)
-
-    hold on
-
-    choose_logy = true;
-
-    plot_minmax_median_quantiles(...
+    plot_minmax_median_quantiles(':',...
         min_resAbz_list(:,method_counters_with_stopping),...
         max_resAbz_list(:,method_counters_with_stopping),...
         median_resAbz_list(:,method_counters_with_stopping),...
         quant25_resAbz_list(:,method_counters_with_stopping),...
         quant75_resAbz_list(:,method_counters_with_stopping),...
-        choose_logy,srek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+        choose_logy,grek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+
+    if length(method_counters_with_stopping) > 1
+       legend(medianplot_array, 'location', 'northwest');
+    end
 
     hold off
 
-    title('||Ax_k+b-z_k^*||')
+    title('$$\|Ax_k+b-z_k^*||_2/\|b\|_2$$','Interpreter','latex')
+ 
     
     
     
-    subplot(2,2,4)
-
+    % plot stochastic substitute for ||ATz_k|| together with ||ATz_k||
+    subplot(1,2,2) 
     hold on
-
     choose_logy = true;
 
-    plot_minmax_median_quantiles(...
+    plot_minmax_median_quantiles('-',...
         min_resATz_list(:,method_counters_with_stopping),...
         max_resATz_list(:,method_counters_with_stopping),...
         median_resATz_list(:,method_counters_with_stopping),...
         quant25_resATz_list(:,method_counters_with_stopping),...
         quant75_resATz_list(:,method_counters_with_stopping),...
-        choose_logy,srek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
-
+        choose_logy,grek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+    
+    plot_minmax_median_quantiles(':',...
+        min_resATz_mean_list(:,method_counters_with_stopping),...
+        max_resATz_mean_list(:,method_counters_with_stopping),...
+        median_resATz_mean_list(:,method_counters_with_stopping),...
+        quant25_resATz_mean_list(:,method_counters_with_stopping),...
+        quant75_resATz_mean_list(:,method_counters_with_stopping),...
+        choose_logy,grek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+    
+    if length(method_counters_with_stopping) > 1
+       legend(medianplot_array, 'location', 'northwest');
+    end
+    
     hold off
 
-    title('||A^Tz_k||')
+    title('$$\|A^Tz_k\|_2/\|b\|_2$$','Interpreter','latex')
+
+
     
+    %% Plot quantities for stopping criterion for only last iterate
+    %{
+    figure
+    
+    % plot stochastic substitute for ||Ax_k-b+z_k^star||_2^2/norm(b)
+    subplot(1,2,1)
+    hold on
+    choose_logy = true;
+    plot_stopped_quantity(resAbz_mean_list,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
+    title('$$Stoch. subst. for \|Ax_k+b-z_k^*||_2/\|b\|_2$$','Interpreter','latex')
+ 
+    % plot stochastic substitute for ||A^Tz_k||_2^2/norm(b)
+    subplot(1,2,2)
+    hold on
+    choose_logy = true;
+    plot_stopped_quantity(resATz_mean_list,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
+    title('$$Stoch. subst. for \|A^z_k||_2/\|b\|_2$$','Interpreter','latex')
+    %}
+
     
     
     
@@ -655,7 +663,7 @@ disp('')  % new line
     %% Plot error quantities after stopping for the last iterate x_k for the last instance
       % (only for SREK and ESREK method, each method in a single plot)
        
-
+    
 
     % only plot stopping iteration after
     
@@ -664,48 +672,28 @@ disp('')  % new line
     sgtitle('Errors for one random instance, circle indicates value at stopped iteration')
 
     % plot stopped res
-    subplot(2,2,1)
+    subplot(1,3,1)
     hold on
     choose_logy = false;
     medianplot_array = plot_stopped_quantity(res,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
-    title('Residual')
+    title('$$\|b-Ax_k\|_2/\|b\|_2$$','Interpreter','latex')
     legend(medianplot_array, 'location', 'northwest');
 
     % plot stopped grad z functional
-    subplot(2,2,2)
+    subplot(1,3,2)
     hold on
     choose_logy = true;
     plot_stopped_quantity(grad_zfunctional,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
-    title('Gradient gstar(b-Ax)')
-
-    % plot stopped lsres
-    %{
-    subplot(2,2,3)
-    plot_stopped_quantity(lsres,iterstop_list,choose_logy,...
-                                       method_array,method_counter,iter_save,maxiter);
-    title('Gradient of least squares function')
-    %}
-
+    title('$$\|A^T \nabla g^*(b-Ax_k)\|_2/\|A^Tb\|_2$$','Interpreter','latex')
     
     % plot stopped reconstruction error 
-    subplot(2,2,3)
+    subplot(1,3,3)
     hold on
     choose_logy = true;
     plot_stopped_quantity(err_to_sparse,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
-    title('Distance to sparse solution (RegBP)')
+    title('$$\|x-\hat x\|_2/\|\hat x\|_2$$','Interpreter','latex')
     
     
-    % plot error to Moore Penrose inverse solution
-    subplot(2,2,4)
-    hold on
-    choose_logy = true;
-    plot_stopped_quantity(err_to_moorepi,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
-    title('Distance to Moore-Penrose inverse solution')
-
-
-
-
-
 
     
     
@@ -738,7 +726,7 @@ disp('')  % new line
         stem(x,'color','red');
         title(['After all iterations, ' method_array{method_counter} ' method: x_{hat} (blue), nnz_{hat}=', num2str(sp),', x (red), nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
 
-        if any( strcmp( method_array{method_counter}, {'srek','esrek'} )  )
+        if any( strcmp( method_array{method_counter}, {'grek','egrek'} )  )
             
             % plot iterate after stopping
             figure
@@ -750,7 +738,7 @@ disp('')  % new line
             stem(xhat,'color','blue'); 
             hold on
             stem(x,'color','red');
-            title(['After stopping, ' method_array{method_counter} ' method: x_{hat} (blue) , nnz_{hat}=', num2str(sp),' , x (red) , nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
+            title(['After stopping, ' method_array{method_counter} ' method: x_{hat} (blue) , nnz_{hat}=', num2str(sp),' , x (red) , nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iterstop_list(end,method_counter)/max(m,n)))]);
 
         end
         

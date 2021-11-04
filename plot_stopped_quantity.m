@@ -22,7 +22,7 @@ function medianplot_array = plot_stopped_quantity(quantity,iterstop_list,choose_
                 linecolor_dict(method_array{method_counter}),'LineWidth',2,...
                 'DisplayName',displayname_dict(method_array{method_counter}));
 
-            if any( strcmp(method_array{method_counter},{'srek','esrek'}) )
+            if any( strcmp(method_array{method_counter},{'grek','egrek'}) )
                 plot(iter_stop, stopped_quantity, 'o', 'markersize', 10, 'color', 'k');
             end
 

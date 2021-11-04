@@ -484,14 +484,11 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           sing_values_data.distribution = 'uniform';
           sing_values_data.sigma_min = 1;
           sing_values_data.sigma_max = 2;
-          
-          xhat_min = 0.1;
-          xhat_max = 1;
 
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
           rel_cond_A = compute_rel_cond(A,rank);
                     
-          xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max);        
+          xhat = sparserandn(n,sp);  % true solution          
           b_exact = A*xhat;               % exact data
           
           num_comp_noise = min(m,num_comp_noise);
@@ -502,13 +499,13 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           noise = randn(num_comp_noise,1);
           b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
           
-          tol_resAbz = 1e-4 *noiselev_impulsive;
+          tol_resAbz = 1e-4 *noiselev_impulsive_noise_factor *noiselev_impulsive;
           tol_resATz = 1e-5;         
 
           
           
           
-     case 'impulsive noise, rank-deficient, A with unif distr sv, bad-conditioned A'
+     case 'impulsive noise, rank-deficient, A with unif distr sv, bad-conditioned A and xhat'
   
           num_comp_noise = 10;
           noiselev_impulsive_noise_factor = 10;
@@ -517,14 +514,11 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           sing_values_data.distribution = 'uniform';
           sing_values_data.sigma_min = 0.001;
           sing_values_data.sigma_max = 1;
-          
-          xhat_min = 0.1;
-          xhat_max = 1;
 
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
           rel_cond_A = compute_rel_cond(A,rank);
                     
-          xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max);        
+          xhat = sparserandn(n,sp);  % true solution          
           b_exact = A*xhat;               % exact data
           
           num_comp_noise = min(m,num_comp_noise);
@@ -535,8 +529,8 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           noise = randn(num_comp_noise,1);
           b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
           
-          tol_resAbz = 1e-4 *noiselev_impulsive;
-          tol_resATz = 1e-5;  
+          tol_resAbz = 1e-4 *noiselev_impulsive_noise_factor *noiselev_impulsive;
+          tol_resATz = 1e-5; 
           
           
        
