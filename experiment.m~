@@ -379,9 +379,9 @@ disp('')  % new line
     linecolor_dict('srk') = 'b';
     linecolor_dict('esrk') = 'y';
     linecolor_dict('rek') = 'c';
-    linecolor_dict('grek_1') = 'r';
-    linecolor_dict('grek_2') = 'g';
-    linecolor_dict('grek_3') = 'k';
+    linecolor_dict('grek') = 'r';
+    linecolor_dict('grek_1') = 'g';
+    linecolor_dict('grek_2') = 'k';
     linecolor_dict('egrek') = 'g';
     %linecolor_dict('det_sek') = 'c';
     linecolor_dict('lin_breg') = 'k';
@@ -391,9 +391,9 @@ disp('')  % new line
     minmaxcolor_dict('srk') = lightblue;
     minmaxcolor_dict('esrk') = lightyellow;
     minmaxcolor_dict('rek') = lightcyan;
-    minmaxcolor_dict('grek_1') = lightred;
-    minmaxcolor_dict('grek_2') = lightgreen;
-    minmaxcolor_dict('grek_3') = lightgray;
+    minmaxcolor_dict('grek') = lightred;
+    minmaxcolor_dict('grek_1') = lightgreen;
+    minmaxcolor_dict('grek_2') = lightgray;
     minmaxcolor_dict('egrek') = lightgreen;
     %minmaxcolor_dict('det_sek') = lightcyan;
     minmaxcolor_dict('lin_breg') = lightgray; 
@@ -403,9 +403,9 @@ disp('')  % new line
     quantcolor_dict('srk') = mediumblue;
     quantcolor_dict('esrk') = mediumyellow;
     quantcolor_dict('rek') = mediumcyan;
-    quantcolor_dict('grek_1') = mediumred; 
-    quantcolor_dict('grek_2') = mediumgreen; 
-    quantcolor_dict('grek_3') = mediumgray; 
+    quantcolor_dict('grek') = mediumred; 
+    quantcolor_dict('grek_1') = mediumgreen; 
+    quantcolor_dict('grek_2') = mediumgray; 
     quantcolor_dict('egrek') = mediumgreen;
     %quantcolor_dict('det_sek') = mediumcyan; 
     quantcolor_dict('lin_breg') = mediumgray;
@@ -415,9 +415,9 @@ disp('')  % new line
     displayname_dict('srk') = 'SRK';
     displayname_dict('esrk') = 'ESRK';
     displayname_dict('rek') = 'Extended Kaczmarz';
+    displayname_dict('grek') = 'GREK'; 
     displayname_dict('grek_1') = 'GREK 1'; 
-    displayname_dict('grek_2') = 'GREK 2'; 
-    displayname_dict('grek_3') = 'GREK 3';
+    displayname_dict('grek_2') = 'GREK 2';
     displayname_dict('egrek') = 'GREK with ESRK stepsize';
     displayname_dict('lin_breg') = 'Linearized Bregman method';
 
@@ -591,10 +591,10 @@ disp('')  % new line
     
     %% Plot quantities for stopping criterion
     
-    method_counters_with_stopping = [find(strcmp(method_array,{'grek_1'})), find(strcmp(method_array,{'grek_2'}))...
-                                     find(strcmp(method_array,{'grek_3'})), find(strcmp(method_array,{'egrek'}))]; % plot only for these methods
-    grek_method_array = {method_array{strcmp(method_array,{'grek_1'})},method_array{strcmp(method_array,{'grek_2'})},...
-                         method_array{strcmp(method_array,{'grek_3'})}, method_array{strcmp(method_array,{'egrek'})}};
+    method_counters_with_stopping = [find(strcmp(method_array,{'grek'})),...
+                                     find(strcmp(method_array,{'egrek'}))]; % plot only for these methods
+    grek_method_array = {method_array{strcmp(method_array,{'grek'})},...
+                         method_array{strcmp(method_array,{'egrek'})}};
    
                      
                      
@@ -669,7 +669,7 @@ disp('')  % new line
 
     
     %% Plot quantities for stopping criterion for only last iterate
-    
+    %{
     figure
     
     % plot stochastic substitute for ||Ax_k-b+z_k^star||_2^2/norm(b)
@@ -677,15 +677,15 @@ disp('')  % new line
     hold on
     choose_logy = true;
     plot_stopped_quantity(resAbz_mean_list,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
-    title('$$Stoch. subst. for \|Ax_k+b-z_k^*||_2/\|b\|_2$$ for last iterate','Interpreter','latex')
+    title('$$Stoch. subst. for \|Ax_k+b-z_k^*||_2/\|b\|_2$$','Interpreter','latex')
  
     % plot stochastic substitute for ||A^Tz_k||_2^2/norm(b)
     subplot(1,2,2)
     hold on
     choose_logy = true;
     plot_stopped_quantity(resATz_mean_list,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
-    title('$$Stoch. subst. for \|A^z_k||_2/\|b\|_2$$ for last iterate','Interpreter','latex')
-    
+    title('$$Stoch. subst. for \|A^z_k||_2/\|b\|_2$$','Interpreter','latex')
+    %}
 
     
     

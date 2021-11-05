@@ -206,7 +206,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
       rel_cond_A = compute_rel_cond(A,rank);
                           
       % create xhat
-      xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max);
+      xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max, real_setting);
 
         
       % create noisy b 
@@ -239,7 +239,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
        
        xhat_min = 1;
        xhat_max = 6;
-       xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max);
+       xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max, real_setting);
        
        % create noisy b 
       
@@ -390,7 +390,50 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
 
           tol_resAbz = 1e-7;
           tol_resATz = 0.5; 
+          
+          
+          
+  case 'rank-deficient, large noise in R(A) complement, complex'
+          
+          % m<=n and least-squares solution shall be not unique (no full rank)          
+          
+          noise_factor_rangeA_ortho = 0.5;
+          rank = round(min(m,n)/2);   % must be smaller than m = min(m,n)
+          real_setting = false;
+          sing_values_data.distribution = 'normal';
+          sing_values_data.mu = 0; sing_values_data.stddev = 1;
+          
+          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
+                 
+          xhat = sparserandn(n,sp);  % true solution          
+          b_exact = A*xhat;               % exact data
+          noiselev = noise_factor_rangeA_ortho *norm(b_exact);
+          
+          % create offset with noise in the complement of R(A)
+          N = null(A');             % null(A') = orthogonal complement of R(A)
+          v = randn(size(N,2),1);
+          noise_rangeA_ortho = N*v; 
+          noise_rangeA_ortho = noiselev *noise_rangeA_ortho /norm(noise_rangeA_ortho);
+          b = b_exact + noise_rangeA_ortho;    
+          
+          tol_resAbz = 1e-4;
+          tol_resATz = 1e-6;
+    
+          
+          
+   case  'Franks example, complex'   
+       
+          real_setting = false;
+          rank = min(m,n);
+          sing_values_data.distribution = 'uniform';
+          sing_values_data.sigma_min = 1; sing_values_data.sigma_max = 100;          
+          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
 
+          xhat_min = 1;
+          xhat_max = 6;
+          xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max, real_setting);
+          
           
           
   case 'impulsive noise, full rank'
@@ -491,7 +534,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
           rel_cond_A = compute_rel_cond(A,rank);
                     
-          xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max);        
+          xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max, real_setting);        
           b_exact = A*xhat;               % exact data
           
           num_comp_noise = min(m,num_comp_noise);
@@ -524,7 +567,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
           rel_cond_A = compute_rel_cond(A,rank);
                     
-          xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max);        
+          xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max, real_setting);        
           b_exact = A*xhat;               % exact data
           
           num_comp_noise = min(m,num_comp_noise);
@@ -535,8 +578,8 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           noise = randn(num_comp_noise,1);
           b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
           
-          tol_resAbz = 1e-4 *noiselev_impulsive;
-          tol_resATz = 1e-5;  
+          tol_resAbz = 1e-3*noiselev_impulsive;
+          tol_resATz = 0.5*1e-4*noiselev_impulsive;  
           
           
        
@@ -646,7 +689,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
       
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
 
-  function xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max)
+  function xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max, real_setting)
       xhat=zeros(n,1);
       rpn = randperm(n); 
       nnz_ind = rpn(1:sp);

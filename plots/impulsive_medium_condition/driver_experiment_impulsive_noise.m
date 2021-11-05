@@ -11,7 +11,7 @@ real_setting = true;
 maxiter = 2e6;  % DCT matrix: 4*1e6, otherwise 2*1e5. epsilon=1e-3: 3e-5, epsilon=1e-4: 2e-6.
 
 
-num_repeats = 50; 
+num_repeats = 5; 
 
 iter_save = ceil(maxiter/500);  % each such number of iterations, a data point is added in the error plot
 

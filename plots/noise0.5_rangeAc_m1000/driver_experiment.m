@@ -18,14 +18,17 @@ colsamp = 'colnorms squared';
 
 lambda_value = 5;  
 
-T = @(z) z;  % gradient gstar for g(x) = 1/2 ||x||_2^2 + gamma ||x||_1
-L_gstar = 1;
+T_1 = @(z) z;  % gradient gstar for g(x) = 1/2 ||x||_2^2 + gamma ||x||_1
+L_gstar_1 = 1;
+
+T = {T_1};
+L_gstar = {L_gstar_1};
 
 writeout = false; 
 
 savestep = 1; 
 
-method_array = {'rek','srk','grek'}; 
+method_array = {'rek','srk','grek_1'}; 
 
 experiment_description = 'rank-deficient, medium noise in R(A) complement';
 % noise0.5_rangeAc
