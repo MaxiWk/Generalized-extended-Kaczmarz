@@ -1,4 +1,4 @@
-function data = experiment(n,m,sp,real_setting,lambda,T,L_gstar,maxiter,num_repeats,iter_save,rowsamp,colsamp,seed_indices,writeout,disp_instance,savestep,stopcrit_sample_pars,method_array,experiment_description)
+function data = experiment(n,m,sp,real_setting,lambda,T,L_gstar,maxiter,num_repeats,iter_save,rowsamp,colsamp,writeout,disp_instance,savestep,stopcrit_sample_pars,method_array,experiment_description)
 %function experimentA_kaczmarz_vs_sparse_kaczmarz(n,m,s,maxiter,num_repeats,rowsamp)
 % Perform an experiment to explore usual Kaczmarz vs. sparse Kaczmarz (both
 % randomized). It uses an n by m Gaussian random matrix and a sparse right 
@@ -102,7 +102,8 @@ for repeats = 1:num_repeats
     randn('state',repeats);
 
     problem_data = set_up_instance(m,n,sp,real_setting,experiment_description);
-    [A,rel_cond_A,b,b_exact,xhat] = deal( problem_data.A, problem_data.rel_cond_A, problem_data.b, problem_data.b_exact, problem_data.xhat );
+    [A,rel_cond_A,b,b_exact,xhat] = deal( problem_data.A, problem_data.rel_cond_A, ...
+                                              problem_data.b, problem_data.b_exact, problem_data.xhat);
     [tol_resAbz, tol_resATz] = deal( problem_data.tol_resAbz, problem_data.tol_resATz );
     %rankA = rank(A);
     
@@ -118,17 +119,16 @@ for repeats = 1:num_repeats
     end
   
     xmoorepi = pinv(A)*b;
-    proj_b = A*xmoorepi;
+    %proj_b = A*xmoorepi;
     
     
     
     S = @(z) max(abs(z)-lambda,0).*sign(z); % Soft thresholding    
 
     
-    norma = sum(A.^2,2);      % squared norms of rows of A
-    norma_col = sum(A.^2,1);  % squared norms of cols of A
-    norm_ATb = norm(A'*b);    % for relative least squares residual
-    norm_b = norm(b);
+    norma = sum(abs(A).^2,2);      % squared norms of rows of A
+    norma_col = sum(abs(A).^2,1);  % squared norms of cols of A
+    norm_b_exact = norm(b_exact);
     
     
     % define functions which sample from the row and column indices 
@@ -162,39 +162,46 @@ for repeats = 1:num_repeats
     last_repeat = (repeats == num_repeats);
    
     
+    % tmp (nur zum debuggen)
+    row_ind=randi([1,m],1,maxiter);
+    col_ind=randi([1,n],1,maxiter);
+    
     
     
     for method_counter = 1:length(method_array)
-      
-        rand('state', seed_indices);
-        randn('state', seed_indices);
       
         method = method_array{method_counter};
         iter_save_counter = 1;
 
         % Initialize method
+        
         x = zeros(n,1);  
+        % tmp start
+        %x0 = randn(size(A,2),1);
+        %x = x0;
+        %P_Axb_x0 = x - pinv(A)*(A*x-b);
+        % tmp end
         xdual = zeros(n,1);  
         zdual = b;
         z = T_1(zdual);
         
+        
         % precompute expressions for deterministic algorithms (only for small dimensions)
         
         if any(strcmp(method_array,'det_sek'))
-          AAT = A*A'; 
+          AAT = A*A.'; 
         end
         
         if any(strcmp(method_array,'lin_breg'))
-          ATA = A'*A;
-          ATb = A'*b;
+          ATA = A.'*A;
+          ATb = A.'*b;
         end
         
         lin_breg_stepsize = 1/norm(A)^2;
         
         tic;
         
-        
-        
+
         
         stopped = false;
         
@@ -204,28 +211,31 @@ for repeats = 1:num_repeats
               % 1.: choose index samples
 
               r = samp_row(iter);
-              a = A(r,:)';
+              r = row_ind(iter); % tmp - nur zum debuggen
+              a = A(r,:);
               
               s = samp_col(iter); % execute this for all algorithms in order to get the same r indices
+              s = col_ind(iter); % tmp
               c = A(:,s);
+              
               
               %%%%%%%%%%%%
               % 2.: check stopping criterion
 
-              resAbz_sampled(iter) = (a'*x-b(r)+zdual(r)) / norm_b;
-              first_iter_with_row_samples = max(1, iter-length_resAbz_sampled+1);
-              actual_length_resAbz_sampled = iter - first_iter_with_row_samples + 1;
-              resAbz_mean(iter) = norm(resAbz_sampled(first_iter_with_row_samples:iter)) *sqrt(length_resAbz_sampled/max(1,actual_length_resAbz_sampled));
+              resAbz_sampled(iter) = (a*x-b(r)+zdual(r));
+              first_iter_with_row_samples = max(1, iter-length_resAbz_sampled);
+              actual_length_resAbz_sampled = iter - first_iter_with_row_samples +1;
+              resAbz_mean(iter) = norm(resAbz_sampled(first_iter_with_row_samples:iter)) *sqrt(m/max(1,actual_length_resAbz_sampled));
               
-              resATz_sampled(iter) = c'*z / norm_b;
-              first_iter_with_col_samples = max(1,iter-length_resATz_sampled+1);
-              actual_length_resATz_sampled = iter - first_iter_with_col_samples + 1;
-              resATz_mean(iter) = norm(resATz_sampled(first_iter_with_col_samples:iter)) * sqrt(length_resATz_sampled/max(1,actual_length_resATz_sampled));
-             
+              resATz_sampled(iter) = c'*z;
+              first_iter_with_col_samples = max(1,iter-length_resATz_sampled);
+              actual_length_resATz_sampled = iter - first_iter_with_col_samples +1;
+              resATz_mean(iter) = norm(resATz_sampled(first_iter_with_col_samples:iter)) * sqrt(n/max(1,actual_length_resATz_sampled));             
+
               if( ~stopped ...
                   && iter > stopcrit_sample_pars.min_possible_iter_for_stopping ...
                   && resAbz_mean(iter) < tol_resAbz ...
-                  && resATz_mean(iter) < tol_resATz )
+                  && resATz_mean(iter) < norm(b-zdual)*tol_resATz )
 
                   iterstop_list(repeats,method_counter) = iter;
                   xstop_list(:,repeats,method_counter) = x;
@@ -243,78 +253,79 @@ for repeats = 1:num_repeats
               
               if mod(iter, iter_save) == 0  
                 %disp(num2str(norm(x-xmoorepi)));  %%%%%%%
-                res(iter_save_counter, repeats, method_counter) = norm(A*x-b)/norm_b;
-                %lsres(iter_save_counter, repeats, method_counter) = norm(A'*(A*x-A*xhat))/norm_ATb;
-                %res_proj(iter_save_counter, repeats, method_counter) = norm(A*x - proj_b)/norm_b;
-                lsres(iter_save_counter, repeats, method_counter) = norm(A'*(A*x-b))/norm_ATb;
+                res(iter_save_counter, repeats, method_counter) = norm(A*x-b_exact)/norm_b_exact;
+                %lsres(iter_save_counter, repeats, method_counter) = norm(A'*(A*x-A*xhat))/norm_b_exact;
+                %res_proj(iter_save_counter, repeats, method_counter) = norm(A*x - proj_b)/norm_b_exact;
+                lsres(iter_save_counter, repeats, method_counter) = norm(A.'*(A*x-b_exact))/norm_b_exact;
                 %lsres_proj(iter_save_counter, repeats, method_counter) = norm(A'*(A*x - proj_b))/norm_ATb;
-                grad_zfunctional(iter_save_counter, repeats, method_counter) = norm(A'*T_1(b-A*x))/norm_ATb;
-                err_to_moorepi(iter_save_counter, repeats, method_counter) = norm(x-xmoorepi)/norm(xmoorepi);
+                grad_zfunctional(iter_save_counter, repeats, method_counter) = norm(A.'*T_1(b_exact-A*x))/norm_b_exact;
+                %err_to_moorepi(iter_save_counter, repeats, method_counter) = norm(x-xmoorepi)/norm(xmoorepi);
                 err_to_sparse(iter_save_counter, repeats, method_counter) = norm(x-xhat)/norm(xhat);
-                resAbz_list(iter_save_counter, repeats, method_counter) = norm(A*x-b+zdual)/norm_b;
-                resATz_list(iter_save_counter, repeats, method_counter) = norm(A'*z)/norm_b;
+                resAbz_list(iter_save_counter, repeats, method_counter) = norm(A*x-b+zdual)/norm_b_exact;
+                resATz_list(iter_save_counter, repeats, method_counter) = norm(A.'*z)/norm_b_exact;
                 resAbz_mean_list(iter_save_counter, repeats, method_counter) = resAbz_mean(iter);
                 resATz_mean_list(iter_save_counter, repeats, method_counter) = resATz_mean(iter);
                 tol_zero = 1e-5;   % we count entries with abs value > tol_zero
                 nonzero_entries(iter_save_counter, repeats, method_counter) = nnz(abs(x) > tol_zero);        
                 iter_save_counter = iter_save_counter + 1;
+                
               end
               
               
               %%%%%%%%%%%%
-              % 4. perform update
+              % 4. perform update 
               
               switch method
 
                 % Kaczmarz 
                 case 'rk'
-                  x = x - (a'*x-b(r))/norma(r)*a;
+                  x = x - (a*x-b(r))/norma(r) *a';
 
                 % Sparse Kaczmarz 
               case 'srk'
-                  xdual = xdual -(a'*x-b(r))/norma(r)*a;
+                  xdual = xdual -(a*x-b(r))/norma(r)* a';
                   x = S(xdual);
 
                 % Sparse Kaczmarz with exact stept
                 case 'esrk'
-                  [x,xdual] = linesearch_shrinkage(x,xdual,a,b(r),lambda);
+                  [x,xdual] = linesearch_shrinkage(x,xdual,a.',b(r),lambda);
 
                 % Extended Kaczmarz  
                 case 'rek'
-                  zdual = zdual - (c'*zdual)/(norma_col(s))*c;
-                  x = x -(a'*x-b(r)+zdual(r))/norma(r)*a;
+                  zdual = zdual - (c'*zdual)/(norma_col(s)) *c;
+                  x = x - (a*x-b(r)+zdual(r))/norma(r) *a';
 
                 % Sparse Extended Kaczmarz 
                 case 'grek_1'
-                  zdual = zdual - (c'*z)/(L_gstar_1*norma_col(s))*c;
+                  zdual = zdual - (c'*z)/(L_gstar_1*norma_col(s)) *c;
                   z = T_1(zdual);
-                  xdual = xdual -(a'*x-b(r)+zdual(r))/norma(r)*a;
+                  xdual = xdual -(a*x-b(r)+zdual(r))/norma(r) *a';
                   x = S(xdual);  
 
                 % Sparse Extended Kaczmarz 
                 case 'grek_2'
-                  zdual = zdual - (c'*z)/(L_gstar_2*norma_col(s))*c;   
+                  zdual = zdual - (c'*z)/(L_gstar_2*norma_col(s)) *c;   
                   z = T_2(zdual);
-                  xdual = xdual -(a'*x-b(r)+zdual(r))/norma(r)*a;
+                  xdual = xdual -(a*x-b(r)+zdual(r))/norma(r) *a';
                   x = S(xdual);  
                   
                 % Sparse Extended Kaczmarz 
                 case 'grek_3'
-                  zdual = zdual - (c'*z)/(L_gstar_3*norma_col(s))*c;
+                  zdual = zdual - (c'*z)/(L_gstar_3*norma_col(s)) *c;
                   z = T_3(zdual);
-                  xdual = xdual -(a'*x-b(r)+zdual(r))/norma(r)*a;
+                  xdual = xdual -(a*x-b(r)+zdual(r))/norma(r) *a';
                   x = S(xdual);                    
                   
                 % Sparse Extended Kaczmarz with exact step
                 case 'egrek'
-                  zdual = zdual - (c'*z)/(L_gstar*norma_col(s))*c;
+                  zdual = zdual - (c'*z)/(L_gstar*norma_col(s)) *c;
                   z = T_1(zdual);
-                  [x,xdual] = linesearch_shrinkage(x,xdual,a,b(r)-zdual(r),lambda);
+                  [x,xdual] = linesearch_shrinkage(x,xdual,a.',b(r)-zdual(r),lambda);
 
                 case 'det_sek'
                   zdual = zdual - lin_breg_stepsize*AAT*zdual;
                   z = T(zdual);
-                  xdual = xdual - lin_breg_stepsize*A'*(A*x-b+zdual);
+                  xdual = xdual - lin_breg_stepsize*A.'*(A*x-b+zdual);
                   x = S(xdual);
 
               case 'lin_breg'
@@ -445,11 +456,14 @@ disp('')  % new line
     [min_resAbz_mean_list, max_resAbz_mean_list, median_resAbz_mean_list, quant25_resAbz_mean_list, quant75_resAbz_mean_list] = compute_minmax_median_quantiles(resAbz_mean_list);
     [min_resATz_mean_list, max_resATz_mean_list, median_resATz_mean_list, quant25_resATz_mean_list, quant75_resATz_mean_list] = compute_minmax_median_quantiles(resATz_mean_list);
 
+    
+    
     % set zero entries to eps for not getting -inf in log plot
+    
     min_res = set_zero_entries_to_eps(min_res); 
     %min_res_proj = set_zero_entries_to_eps(min_res_proj); 
     min_lsres = set_zero_entries_to_eps(min_lsres); 
-    min_grad_zfunctional = set_zero_entries_to_eps(grad_zfunctional);
+    min_grad_zfunctional = set_zero_entries_to_eps(min_grad_zfunctional);
     %min_lsres_proj = set_zero_entries_to_eps(min_lsres_proj);    
     min_err_to_moorepi = set_zero_entries_to_eps(min_err_to_moorepi);
     min_err_to_sparse = set_zero_entries_to_eps(min_err_to_sparse);
@@ -462,13 +476,13 @@ disp('')  % new line
     
     figure
     
-    sgtitle(sprintf('Errors, m = %d, n = %d, s = %d, repeats = %d, sampling: ',m,n,sp,num_repeats));
+    sgtitle(sprintf('Errors, m = %d, n = %d, s = %d, repeats = %d',m,n,sp,num_repeats));
 
     subplot(1,3,1)
 
     hold on
 
-    choose_logy = false;
+    choose_logy = true;
 
     medianplot_array = plot_minmax_median_quantiles('-',min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
 
@@ -476,7 +490,7 @@ disp('')  % new line
 
     hold off
 
-    title('$$\|b-Ax_k\|_2/\|b\|_2$$','Interpreter','latex')
+    title('$$\|\Ax_k-\hat b\|_2/\|\hat b\|_2$$','Interpreter','latex')
 
 
 
@@ -495,7 +509,7 @@ disp('')  % new line
 
     hold off
 
-    title('$$\|A^T\nabla g^*(b-Ax_k)\|_2/\|A^Tb\|_2$$','Interpreter','latex')
+    title('$$\|A^T\nabla g^*(\hat b-Ax_k)\|_2/\|\hat b\|_2$$','Interpreter','latex')
 
 
 
@@ -569,7 +583,7 @@ disp('')  % new line
 
     %% Plot results for distance to the Moore-Penrose inverse solution 
     %{
-    subplot(2,2,4)
+    subplot(1,4,4)
 
     hold on 
 
@@ -632,7 +646,7 @@ disp('')  % new line
 
     hold off
 
-    title('$$\|Ax_k+b-z_k^*||_2/\|b\|_2$$','Interpreter','latex')
+    title('$$\|Ax_k+b-z_k^*||_2/\|\hat b\|_2$$','Interpreter','latex')
  
     
     
@@ -664,7 +678,7 @@ disp('')  % new line
     
     hold off
 
-    title('$$\|A^Tz_k\|_2/\|b\|_2$$','Interpreter','latex')
+    title('$$\|A^Tz_k\|_2/\|\hat b\|_2$$','Interpreter','latex')
 
 
     
@@ -676,15 +690,15 @@ disp('')  % new line
     subplot(1,2,1)
     hold on
     choose_logy = true;
-    plot_stopped_quantity(resAbz_mean_list,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
-    title('$$Stoch. subst. for \|Ax_k+b-z_k^*||_2/\|b\|_2$$ for last iterate','Interpreter','latex')
+    plot_stopped_quantity(resAbz_mean_list,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
+    title('$$Stoch. subst. for \|Ax_k+b-z_k^*||_2/\|\hat b\|_2$$ for last iterate','Interpreter','latex')
  
     % plot stochastic substitute for ||A^Tz_k||_2^2/norm(b)
     subplot(1,2,2)
     hold on
     choose_logy = true;
-    plot_stopped_quantity(resATz_mean_list,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
-    title('$$Stoch. subst. for \|A^z_k||_2/\|b\|_2$$ for last iterate','Interpreter','latex')
+    plot_stopped_quantity(resATz_mean_list,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
+    title('$$Stoch. subst. for \|A^Tz_k||_2/\||\hat b\|_2$$ for last iterate','Interpreter','latex')
     
 
     
@@ -707,23 +721,23 @@ disp('')  % new line
     % plot stopped res
     subplot(1,3,1)
     hold on
-    choose_logy = false;
+    choose_logy = true;
     medianplot_array = plot_stopped_quantity(res,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
-    title('$$\|b-Ax_k\|_2/\|b\|_2$$','Interpreter','latex')
+    title('$$\|Ax_k-\hat b\|_2/\|\hat b\|_2$$','Interpreter','latex')
     legend(medianplot_array, 'location', 'northwest');
 
     % plot stopped grad z functional
     subplot(1,3,2)
     hold on
     choose_logy = true;
-    plot_stopped_quantity(grad_zfunctional,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
-    title('$$\|A^T \nabla g^*(b-Ax_k)\|_2/\|A^Tb\|_2$$','Interpreter','latex')
+    plot_stopped_quantity(grad_zfunctional,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
+    title('$$\|A^T \nabla g^*(\hat b-Ax_k)\|_2/\|\hat b\|_2$$','Interpreter','latex')
     
     % plot stopped reconstruction error 
     subplot(1,3,3)
     hold on
     choose_logy = true;
-    plot_stopped_quantity(err_to_sparse,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
+    plot_stopped_quantity(err_to_sparse,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
     title('$$\|x-\hat x\|_2/\|\hat x\|_2$$','Interpreter','latex')
     
     
@@ -759,7 +773,7 @@ disp('')  % new line
         stem(x,'color','red');
         title(['After all iterations, ' method_array{method_counter} ' method: x_{hat} (blue), nnz_{hat}=', num2str(sp),', x (red), nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
 
-        if any( strcmp( method_array{method_counter}, {'grek','egrek'} )  )
+        if any( strcmp( method_array{method_counter}, {'grek_1','grek_2','egrek'} )  )
             
             % plot iterate after stopping
             figure

@@ -1,14 +1,14 @@
-dir_to_folder_with_figures = 'plots/impulsive_2';
+dir_to_folder_with_figures = 'plots/impulsive_medium_condition_add_noise';
 
-m = 50; % DCT matrix: m=2000  % otherwise: 500/200
-n = 20; % DCT matrix: n=1000  % otherwise: 200/500
-sp = 5; % Frank's examples: ceil(m/20) 
+m = 500; % DCT matrix: m=2000  % otherwise: 500/200
+n = 200; % DCT matrix: n=1000  % otherwise: 200/500
+sp = 20; % Frank's examples: ceil(m/20) 
 %sp = min(5,n); % as before
 
 
 real_setting = true; 
 
-maxiter = 1e6;  % DCT matrix: 4*1e6, otherwise 2*1e5. epsilon=1e-3: 3e-5, epsilon=1e-4: 2e-6.
+maxiter = 3e6;  % DCT matrix: 4*1e6, otherwise 2*1e5. epsilon=1e-3: 3e-5, epsilon=1e-4: 2e-6.
 
 
 num_repeats = 5; 
@@ -30,14 +30,13 @@ tau = 0.001;
 r_epsilon_factor = 0.1;
 shrinkage_par = 1; 
 
+T_1 = @(x) x;
+L_gstar_1 = 1;
 
-T_1 = @(x) T_taureg(x,epsilon,tau);  
-L_gstar_1 = max(1/epsilon,1) + tau;
+T_2 = @(x) T_taureg(x,epsilon,tau);  
+L_gstar_2 = 1/epsilon + tau;
 
-T_2 = @(x) 1/2*norm(x)^2;
-L_gstar_2 = 1;
-
-T = {T_1; T_2};
+T = {T_1, T_2};
 L_gstar = [L_gstar_1, L_gstar_2];
 
 %T = @(x) x; % L_gstar = 1;
@@ -55,10 +54,11 @@ writeout = false;
 
 savestep = 1; 
 
-method_array = {'rek','srk','grek_1','greak'}; 
+method_array = {'rek','srk','grek_1','grek_2'}; 
 
 %experiment_description = 'impulsive noise, rank-deficient, A with unif distr sv, well-conditioned A and xhat';
-experiment_description = 'impulsive noise, rank-deficient, A with unif distr sv, bad-conditioned A';
+%experiment_description = 'impulsive noise, rank-deficient, A with unif distr sv, bad-conditioned A';
+experiment_description = 'impulsive noise and 10% additional noise, rank-deficient, bad-conditioned A and xhat';
 
 median_res = zeros(maxiter,length(method_array));
 

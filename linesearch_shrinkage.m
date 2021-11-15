@@ -7,7 +7,7 @@ function [x,z,t]=linesearch_shrinkage(x,z,a,y,c,b)
     
     % start intervall contains initial value t0=0, i.e. initial b=-g'(0)
     if nargin < 6
-        b = a'*x-y;
+        b = a.'*x-y;
     end
     s = sign(b);
     if s == 0 % <=> g'(0)=0 and we are already done

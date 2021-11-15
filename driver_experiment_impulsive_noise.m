@@ -6,12 +6,12 @@ sp = 20; % Frank's examples: ceil(m/20)
 %sp = min(5,n); % as before
 
 
-real_setting = true; 
+real_setting = false; 
 
-maxiter = 2e6;  % DCT matrix: 4*1e6, otherwise 2*1e5. epsilon=1e-3: 3e-5, epsilon=1e-4: 2e-6.
+maxiter = 3e6;  % DCT matrix: 4*1e6, otherwise 2*1e5. epsilon=1e-3: 3e-5, epsilon=1e-4: 2e-6.
 
 
-num_repeats = 50; 
+num_repeats = 5; 
 
 iter_save = ceil(maxiter/500);  % each such number of iterations, a data point is added in the error plot
 
@@ -34,7 +34,7 @@ T_1 = @(x) x;
 L_gstar_1 = 1;
 
 T_2 = @(x) T_taureg(x,epsilon,tau);  
-L_gstar_2 = max(1/epsilon,1) + tau;
+L_gstar_2 = 1/epsilon + tau;
 
 T = {T_1, T_2};
 L_gstar = [L_gstar_1, L_gstar_2];
@@ -58,6 +58,9 @@ method_array = {'rek','srk','grek_1','grek_2'};
 
 %experiment_description = 'impulsive noise, rank-deficient, A with unif distr sv, well-conditioned A and xhat';
 experiment_description = 'impulsive noise, rank-deficient, A with unif distr sv, bad-conditioned A';
+%experiment_description = 'impulsive noise and 1% additional noise, rank-deficient, bad-conditioned A and xhat';
+%experiment_description = 'dctmatrix, impulsive noise';
+%experiment_description = 'impulsive noise, full rank';
 
 median_res = zeros(maxiter,length(method_array));
 
@@ -72,7 +75,7 @@ stopcrit_sample_pars.length_resAbz_sampled = ceil(m/2);
 stopcrit_sample_pars.length_resATz_sampled = ceil(n/2);
 stopcrit_sample_pars.min_possible_iter_for_stopping = 4*max(m,n);
 
-data = experiment(n,m,sp,real_setting,lambda,T,L_gstar,maxiter,num_repeats,iter_save,rowsamp,colsamp,1,...
+data = experiment(n,m,sp,real_setting,lambda,T,L_gstar,maxiter,num_repeats,iter_save,rowsamp,colsamp,...
                           writeout,disp_instance,savestep,stopcrit_sample_pars,method_array,experiment_description);
 
 save(fullfile(dir_to_folder_with_figures, 'data.mat'), 'data', '-mat');
