@@ -359,7 +359,7 @@ for repeats = 1:num_repeats
 
 end  % end for loop over repeats
 
-disp('')  % new line
+
 
 
 
@@ -490,7 +490,7 @@ disp('')  % new line
 
     hold off
 
-    title('$$\|\Ax_k-\hat b\|_2/\|\hat b\|_2$$','Interpreter','latex')
+    title('$$\|Ax_k-\hat b\|_2/\|\hat b\|_2$$','Interpreter','latex')
 
 
 
@@ -795,7 +795,7 @@ disp('')  % new line
 
 
     %% Display number of nonzero entries of last iterate
-
+    fprintf('\n')
     for i = 1:length(method_array)
         disp(['Entries with absolute value > ' num2str(tol_zero) ', ' method_array{i} ' method (min, median,max): ' num2str(min_nonzero_entries(end,i)) ', ' num2str(median_nonzero_entries(end,i)) ', ' num2str(max_nonzero_entries(end,i)) ])
     end

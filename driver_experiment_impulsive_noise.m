@@ -1,14 +1,14 @@
-dir_to_folder_with_figures = 'plots/impulsive_medium_condition';
+dir_to_folder_with_figures = 'plots/impulsive_medium_condition_complex_large';
 
-m = 500; % DCT matrix: m=2000  % otherwise: 500/200
-n = 200; % DCT matrix: n=1000  % otherwise: 200/500
-sp = 20; % Frank's examples: ceil(m/20) 
+m = 1000; % DCT matrix: m=2000  % otherwise: 500/200
+n = 500; % DCT matrix: n=1000  % otherwise: 200/500
+sp = 50; % Frank's examples: ceil(m/20) 
 %sp = min(5,n); % as before
 
 
 real_setting = false; 
 
-maxiter = 3e6;  % DCT matrix: 4*1e6, otherwise 2*1e5. epsilon=1e-3: 3e-5, epsilon=1e-4: 2e-6.
+maxiter = 2e6;  
 
 
 num_repeats = 5; 
@@ -56,8 +56,8 @@ savestep = 1;
 
 method_array = {'rek','srk','grek_1','grek_2'}; 
 
-%experiment_description = 'impulsive noise, rank-deficient, A with unif distr sv, well-conditioned A and xhat';
-experiment_description = 'impulsive noise, rank-deficient, A with unif distr sv, bad-conditioned A';
+experiment_description = 'impulsive noise, rank-deficient, A with unif distr sv, well-conditioned A and xhat';
+%experiment_description = 'impulsive noise, rank-deficient, A with unif distr sv, medium-conditioned A';
 %experiment_description = 'impulsive noise and 1% additional noise, rank-deficient, bad-conditioned A and xhat';
 %experiment_description = 'dctmatrix, impulsive noise';
 %experiment_description = 'impulsive noise, full rank';

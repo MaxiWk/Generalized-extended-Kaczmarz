@@ -1,22 +1,22 @@
-dir_to_folder_with_figures = 'plots/Franks_example_complex_impulsive_noise';
+dir_to_folder_with_figures = 'plots/noise_5RAc_real_m1000n500_lambda20_early';
 
-m = 800;  % 500 
-n = 600;  % 200
-sp = ceil(n/40);   % 20
+m = 500;  % 500 
+n = 1000;  % 200 
+sp = 25;   
 
 
-num_repeats = 2; % 5 
+num_repeats = 50; 
 
-real_setting = false;
+real_setting = true;
 
-maxiter = 5000; % Number of iterations % 5e6
+maxiter = 5e5; % Number of iterations % 5e6
 number_data_points = 500;
 iter_save = floor(maxiter/number_data_points);  % each such number of iterations, a data point is added in the error plot
 
 rowsamp = 'rownorms squared';
 colsamp = 'colnorms squared';
 
-lambda_value = 5;  
+lambda_value = 20;  
 
 T_1 = @(z) z;  % gradient gstar for g(x) = 1/2 ||x||_2^2 + gamma ||x||_1
 L_gstar_1 = 1;
@@ -31,7 +31,7 @@ writeout = false;
 
 savestep = 1; 
 
-method_array = {'rek', 'srk', 'grek_2'}; 
+method_array = {'rek', 'srk', 'grek_1'}; 
 
 experiment_description = 'rank-deficient, medium noise in R(A) complement';
 % noise0.5_rangeAc
@@ -60,8 +60,6 @@ experiment_description = 'rank-deficient, medium noise in R(A) complement';
 %experiment_description = 'rank deficient, consistent, no noise';
 
 %experiment_description = 'rank deficient, consistent, no noise';
-
-experiment_description = 'Franks example, complex';
 
 disp_instance = false;
 
