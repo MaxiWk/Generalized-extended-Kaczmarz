@@ -3,6 +3,8 @@ function medianplot_array = plot_minmax_median_quantiles(lineStyle,mins,maxs,med
       medianplot_array = zeros(1, length(method_array));  % for legend
       num_iter_array = 1:iter_save:maxiter;
       num_methods = length(method_array);
+      
+      hold on
 
       for i = 1:num_methods
           
@@ -33,4 +35,7 @@ function medianplot_array = plot_minmax_median_quantiles(lineStyle,mins,maxs,med
           axis square
 
       end
+      
+      hold off
+      
     end

@@ -1,22 +1,22 @@
 dir_to_fig = 'texfigures/dummy';
 
-m = 50;  % 500 
-n = 100;  % 1000
-sp = 5;   % 25
+m = 500;  % 500 
+n = 1000;  % 1000
+sp = 25;   % 25
 
 
-num_repeats = 2; 
+num_repeats = 50; 
 
 real_setting = true;
 
-maxiter = 5e5; % Number of iterations % 5e6
+maxiter = 1e6; % Number of iterations % 5e6
 number_data_points = 500;
 iter_save = floor(maxiter/number_data_points);  % each such number of iterations, a data point is added in the error plot
 
 rowsamp = 'rownorms squared';
 colsamp = 'colnorms squared';
 
-lambda_value = 20;  
+lambda_value = 5;  
 
 T_1 = @(z) z;  % gradient gstar for g(x) = 1/2 ||x||_2^2 + gamma ||x||_1
 L_gstar_1 = 1;

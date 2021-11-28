@@ -4,31 +4,38 @@ function data = experiment(n,m,sp,real_setting,lambda,T,L_gstar,maxiter,num_repe
 %  n: number of columns
 %  m: number of rows
 %  sp: number of nozeros in solution 
-%  T: gradient g*, can also be a cell array of different gradient g* -> then names 'grek_1', 'grek_2',.. 
+%  real_setting: boolean, if true: solve Ax=b with real data A,b, if false:
+%  complex data A,b
+%  T: gradient g*, can also be a cell array of different gradients g* -> then names 'grek_1', 'grek_2',.. 
 %  Needs to match also to L_gstar_1, L_gstar_2, ...
-%  We require length(T) == length(L_gstar) < 3
-%  We use
-%  g(x) = 1/2 ||x||_2^2 + gamma ||x||_1, 
-%  g^*(x) = r_epsilon(x) Huber function, 
-%  g^*(x) = r_epsilon(x) + tau/2 ||x||_2^2
-%  g^*(x) = mu* r_epsilon(x) + 1/2 ||x||_2^2
+%  We require length(T) == length(L_gstar) < 3 if cell array
+%  We use 
+%  g^*(x) = r_epsilon(x) + tau/2 ||x||_2^2 with Huber function r_epsilon =
+%  ^{epsilon} ||.||_1 (Moreau-envelope of 1-norm)
+%  Here always gradient f^* = soft shrinkage with parameter lambda
+%  L_gstar: Lipschitz constant of T (i.e. of gradient g^*)
 %  maxiter: maximum number of Kaczmarz-steps (projections, not sweeps)
 %  num_repeats: number of repetitions (samples)
-% iter_save: each such number of iterations, a data point is added in the error plot
+%  iter_save: each such number of iterations, a data point is added in the error plot
 %  rowsamp: Method to sample the rows. Can be
 %    'rownorms_squared': probablity proportional to the squares of row-norms
 %    ' uniform': Uniform sampling of rows 
 %    ' random_probabilities': Sample a vector of probabilities uniformly at
 %        random
 %  colsamp: Analogously for column sampling in case of extended Kaczmarz
-%  writeout: boolean (if true write data, if false only show plots)
+%  writeout: boolean (if true generate subplot as in paper and save it with matlab2tikz, if false show single plots with titles and do not save them)
+%  dir_to_fig: Directory to folder where to save figures with matlab2tikz
+%  in case of writeout==true
+%  disp_instance: boolean (if true disp b_exact, the right-hand side without noise, and xhat, the exact sparse solution)
 %  savestep: Only each "savesteps"th data point will be stored
-% disp_instance: boolean (if true disp b_exact, the right-hand side without noise, and xhat, the exact sparse solution)
-
-% methods: Cell array with methods given as strings: 
-% 'rk': Kaczmarz, 'srk': Sparse Randomized Kaczmarz, 'esrk': Exact step Sparse Kaczmarz, 
-% 'grek': (Generalized) Sparse Randomized Extended Kaczmarz, 'egrek': Exact step Sparse
-% Randomized Extended Kaczmarz
+%  stopcrit_sample_pars: struct with tolerances for stopping criterion, see set_up_instance
+%  script for examples
+%  method_array: cell array with method identifiers. Possible values:
+%  'rk': Kaczmarz, 'srk': Sparse Randomized Kaczmarz, 'esrk': Exact step Sparse Kaczmarz, 
+%  'grek_{1,2,3}': (Generalized) Sparse Randomized Extended Kaczmarz, 'egrek': Exact step Sparse
+%  Randomized Extended Kaczmarz
+%  experiment_description: cell array with identifiers for experiments, see
+%  set_up_instance script
 
 % Some standard parameters for an experiment:
 % n = 200;        % Number of columns
@@ -471,385 +478,478 @@ end  % end for loop over repeats
 
 
 
-
-    %% plot errors
     
-    figure
-    
-    sgtitle(sprintf('Errors, m = %d, n = %d, s = %d, repeats = %d',m,n,sp,num_repeats));
+    if ~writeout
 
-    subplot(1,3,1)
+        %% plot errors
 
-    hold on
-
-    choose_logy = true;
-
-    plot_array = plot_minmax_median_quantiles('-',min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
-
-    leg = legend(plot_array, 'location', 'southwest');
-    if writeout
-        set(leg,'visible','off')  % remove legend
-    end
-    
-    
-    xlabel('$k$','Interpreter','latex')
-
-    ylabel('$$\|Ax-\hat b\|/\|\hat b\|$$','Interpreter','latex')
-
-    hold off
-   
-
-
-
-
-    subplot(1,3,2)
-
-    hold on
-
-    choose_logy = true;
-
-    plot_minmax_median_quantiles('-',min_grad_zfunctional,max_grad_zfunctional,median_grad_zfunctional,...
-                                                    quant25_grad_zfunctional,quant75_grad_zfunctional,choose_logy, ...
-                                                    method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
-                                                    linecolor_dict,displayname_dict);
-
-    xlabel('$k$','Interpreter','latex')
-    ylabel('$$\|A^T\nabla g^*(\hat b-Ax)\|/\|\hat b\|$$','Interpreter','latex')
-    
-    % remove legend
-    leg = legend('figure()');
-    set(leg,'visible','off')
-
-    hold off
-
-
-
-
-
-
-
-
-
-    %% plot results for 'residuals' with P_{R(A)}(b) instead of b
-    %{
-    subplot(2,3,2)
-
-    hold on
-
-    choose_logy = true;
-
-    medianplot_array = plot_minmax_median_quantiles('-',min_res_proj,max_res_proj,median_res_proj,quant25_res_proj,quant75_res_proj, choose_logy, method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
-
-    hold off
-
-    title('Proj. Residuals')
-    %}
-
-
-
-
-
-    %% Plot results for least squares residuals
-%{
-
-    subplot(2,2,3)
-
-    hold on 
-
-    choose_logy = true;
-
-    medianplot_array = plot_minmax_median_quantiles('-',min_lsres,max_lsres,median_lsres,quant25_lsres,quant75_lsres,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
-
-    %legend(medianplot_array, 'location', 'southwest');
-
-    hold off
-
-    title('Gradient of least squares function')
-%}
-
-
-
-
-
-    %% Plot results for distance to the sparse solution (sol of reg BP problem)
-
-
-    subplot(1,3,3)
-
-    hold on 
-
-    choose_logy = true;
-
-    plot_minmax_median_quantiles('-',min_err_to_sparse,max_err_to_sparse,median_err_to_sparse,...
-                                                    quant25_err_to_sparse,quant75_err_to_sparse, choose_logy,...
-                                                    method_array,iter_save,maxiter,minmaxcolor_dict,...
-                                                    quantcolor_dict,linecolor_dict,displayname_dict);
-
-    %legend(medianplot_array, 'location', 'northeast');
-    
-    % remove legend
-    leg = legend('figure()');
-    set(leg,'visible','off')
-    
-    xlabel('$k$','Interpreter','latex')
-    ylabel('$$\|x-\hat x\|/\|\hat x\|$$','Interpreter','latex')
-
-    hold off                                                
-
-
-    
-
-    
-    if writeout
-        matlab2tikz('width','\figurewidth',...
-            'extraaxisoptions',['legend style={font=\scriptsize},'], ...
-            [dir_to_fig '/err_over_iter.tex']);
-    end
-    
-    
-    
-
-
-    %% Plot results for distance to the Moore-Penrose inverse solution 
-    %{
-    subplot(1,4,4)
-
-    hold on 
-
-    choose_logy = true;
-
-    plot_minmax_median_quantiles('-',min_err_to_moorepi,max_err_to_moorepi,median_err_to_moorepi,...
-                                                    quant25_err_to_moorepi,quant75_err_to_moorepi,choose_logy,...);
-                                                    method_array,iter_save,maxiter,minmaxcolor_dict,...
-                                                    quantcolor_dict,linecolor_dict,displayname_dict);
-    hold off                                                
-
-    title('$$\|x-x^\dagger\|/\|x^\dagger\|$$','Interpreter','latex')
-    %}
-
-    
-    
-    
-    
-    
-    %% Plot quantities for stopping criterion
-    
-    method_counters_with_stopping = [find(strcmp(method_array,{'grek_1'})), find(strcmp(method_array,{'grek_2'}))...
-                                     find(strcmp(method_array,{'grek_3'})), find(strcmp(method_array,{'egrek'}))]; % plot only for these methods
-    grek_method_array = {method_array{strcmp(method_array,{'grek_1'})},method_array{strcmp(method_array,{'grek_2'})},...
-                         method_array{strcmp(method_array,{'grek_3'})}, method_array{strcmp(method_array,{'egrek'})}};
-   
-                     
-                     
-                     
-    figure
-    
-    sgtitle(sprintf('Quantities for stopping criterion, solid line: deterministic one, \n dashed line: Stochastic substitute computed in the algorithm'))
-
-    
-    
-    %  plot stochastic substitute for ||A*x_k + b - zstar_k||  together with ||A*x_k + b - zstar_k||
-    subplot(1,2,1)
-    hold on
-    choose_logy = true;
- 
-    plot_array = plot_minmax_median_quantiles('-',...
-        min_resAbz_mean_list(:,method_counters_with_stopping),...
-        max_resAbz_mean_list(:,method_counters_with_stopping),...
-        median_resAbz_mean_list(:,method_counters_with_stopping),...
-        quant25_resAbz_mean_list(:,method_counters_with_stopping),...
-        quant75_resAbz_mean_list(:,method_counters_with_stopping),...
-        choose_logy,grek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
-    
-    plot_minmax_median_quantiles(':',...
-        min_resAbz_list(:,method_counters_with_stopping),...
-        max_resAbz_list(:,method_counters_with_stopping),...
-        median_resAbz_list(:,method_counters_with_stopping),...
-        quant25_resAbz_list(:,method_counters_with_stopping),...
-        quant75_resAbz_list(:,method_counters_with_stopping),...
-        choose_logy,grek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
-
-    if length(method_counters_with_stopping) > 1
-       legend(plot_array, 'location', 'northwest');
-    end
-
-    xlabel('$$k$$','Interpreter','latex')
-    ylabel('$$\|Ax+b-z^*||_2/\|\hat b\|$$','Interpreter','latex')
- 
-    hold off
-     
-    
-    
-    % plot stochastic substitute for ||ATz_k|| together with ||ATz_k||
-    subplot(1,2,2) 
-    hold on
-    choose_logy = true;
-
-    plot_minmax_median_quantiles('-',...
-        min_resATz_list(:,method_counters_with_stopping),...
-        max_resATz_list(:,method_counters_with_stopping),...
-        median_resATz_list(:,method_counters_with_stopping),...
-        quant25_resATz_list(:,method_counters_with_stopping),...
-        quant75_resATz_list(:,method_counters_with_stopping),...
-        choose_logy,grek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
-    
-    plot_minmax_median_quantiles(':',...
-        min_resATz_mean_list(:,method_counters_with_stopping),...
-        max_resATz_mean_list(:,method_counters_with_stopping),...
-        median_resATz_mean_list(:,method_counters_with_stopping),...
-        quant25_resATz_mean_list(:,method_counters_with_stopping),...
-        quant75_resATz_mean_list(:,method_counters_with_stopping),...
-        choose_logy,grek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
-    
-    if length(method_counters_with_stopping) > 1
-       legend(medianplot_array, 'location', 'northwest');
-    end
-
-    xlabel('$$k$$','Interpreter','latex')
-    ylabel('$$\|A^Tz\|/\|\hat b\|$$','Interpreter','latex')
-
-    hold off
-    
-    %% Plot quantities for stopping criterion for only last iterate
-    
-    figure
-    
-    % plot stochastic substitute for ||Ax-b+z^star||_2^2/norm(b)
-    subplot(1,2,1)
-    hold on
-    choose_logy = true;
-    plot_stopped_quantity(resAbz_mean_list,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
-    title('$$Stoch. subst. for \|Ax+b-z^*||_2/\|\hat b\|$$ for last iterate','Interpreter','latex')
- 
-    % plot stochastic substitute for ||A^Tz_k||_2^2/norm(b)
-    subplot(1,2,2)
-    hold on
-    choose_logy = true;
-    plot_stopped_quantity(resATz_mean_list,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
-    title('$$Stoch. subst. for \|A^Tz||_2/\||\hat b\|$$ for last iterate','Interpreter','latex')
-    
-
-    
-    
-    
-    
-    
-    
-    %% Plot error quantities after stopping for the last iterate x_k for the last instance
-      % (only for SREK and ESREK method, each method in a single plot)
-       
-    
-
-    % only plot stopping iteration after
-    
-    figure
-
-    sgtitle('Errors for one random instance, circle indicates value at stopped iteration')
-
-    % plot stopped res
-    subplot(1,3,1)
-    hold on
-    choose_logy = true;
-    plot_array = plot_stopped_quantity(res,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
-    xlabel('$k$','Interpreter','latex')
-    ylabel('$$\|Ax-\hat b\|/\|\hat b\|$$','Interpreter','latex')
-    legend(plot_array, 'location', 'northwest');
-
-    % plot stopped grad z functional
-    subplot(1,3,2)
-    hold on
-    choose_logy = true;
-    plot_stopped_quantity(grad_zfunctional,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
-    xlabel('$k$','Interpreter','latex')
-    ylabel('$$\|A^T \nabla g^*(\hat b-Ax)\|/\|\hat b\|$$','Interpreter','latex')
-    
-    % plot stopped reconstruction error 
-    subplot(1,3,3)
-    hold on
-    choose_logy = true;
-    plot_stopped_quantity(err_to_sparse,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
-    xlabel('$k$','Interpreter','latex')
-    ylabel('$$\|x-\hat x\|/\|\hat x\|$$','Interpreter','latex')
-    
-    
-
-    
-    
-    %% Plot entries of b_exact vs. and b xhat vs. the last iterate x_k 
-    
-    % b_exact vs. b
-    
-    if real_setting
         figure
-        plot_array = plot(1:m,b_exact,1:m,b,':'); title('b_{hat}, b');
-        if ~writeout
-            title('Last test instance: hidden b in R(A) and noisy b')
-        end
-    else
-        figure
-        plot_array = plot(1:m,abs(b_exact),1:m,abs(b),':'); title('|b_{hat}|, |b|');
-        if ~writeout
-            title('Last test instance: abs. value of b in R(A) and noisy b')
-        end
-    end
-    
-    legend(plot_array, {'b','noisy b'}, 'location', 'northwest')
-    
-    if writeout
-        matlab2tikz('width','\figurewidth',...
-            'extraaxisoptions',['legend style={font=\scriptsize},'], ...
-            [dir_to_fig '/b_noise.tex']);
-    end
 
-    
-    
-        
-        
-    
-    for method_counter = 1:length(method_array)    
-          
-        % plot last iterate
-        figure
-        x = x_last_test_instance(:,method_counter);
-        if ~real_setting  % plot absolute values
-            xhat = abs(xhat);
-            x = abs(x);
-        end
-        stem(xhat,'color','blue')
+        sgtitle(sprintf('Errors, m = %d, n = %d, s = %d, repeats = %d',m,n,sp,num_repeats));
+
+        subplot(1,3,1)
+
         hold on
-        stem(x,'color','red')
-        if ~writeout
-            title(['After all iterations, ' method_array{method_counter} ' method: x_{hat} (blue), nnz_{hat}=', num2str(sp),', x (red), nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
+
+        choose_logy = true;
+
+        plot_array = plot_minmax_median_quantiles('-',min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+
+        leg = legend(plot_array, 'location', 'southwest');
+
+        xlabel('$k$','Interpreter','latex')
+
+        ylabel('$$\|Ax-\hat b\|/\|\hat b\|$$','Interpreter','latex')
+
+        hold off
+
+
+
+
+
+        subplot(1,3,2)
+
+        hold on
+
+        choose_logy = true;
+
+        plot_minmax_median_quantiles('-',min_grad_zfunctional,max_grad_zfunctional,median_grad_zfunctional,...
+                                                        quant25_grad_zfunctional,quant75_grad_zfunctional,choose_logy, ...
+                                                        method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
+                                                        linecolor_dict,displayname_dict);
+
+        xlabel('$k$','Interpreter','latex')
+        ylabel('$$\|A^T\nabla g^*(\hat b-Ax)\|/\|\hat b\|$$','Interpreter','latex')
+
+        % remove legend
+        leg = legend('figure()');
+        set(leg,'visible','off')
+
+        hold off
+
+
+
+
+
+
+
+
+
+        %% plot results for 'residuals' with P_{R(A)}(b) instead of b
+        %{
+        subplot(2,3,2)
+
+        hold on
+
+        choose_logy = true;
+
+        medianplot_array = plot_minmax_median_quantiles('-',min_res_proj,max_res_proj,median_res_proj,quant25_res_proj,quant75_res_proj, choose_logy, method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+
+        hold off
+
+        title('Proj. Residuals')
+        %}
+
+
+
+
+
+        %% Plot results for least squares residuals
+    %{
+
+        subplot(2,2,3)
+
+        hold on 
+
+        choose_logy = true;
+
+        medianplot_array = plot_minmax_median_quantiles('-',min_lsres,max_lsres,median_lsres,quant25_lsres,quant75_lsres,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+
+        %legend(medianplot_array, 'location', 'southwest');
+
+        hold off
+
+        title('Gradient of least squares function')
+    %}
+
+
+
+
+
+        %% Plot results for distance to the sparse solution (sol of reg BP problem)
+
+
+        subplot(1,3,3)
+
+        hold on 
+
+        choose_logy = true;
+
+        plot_minmax_median_quantiles('-',min_err_to_sparse,max_err_to_sparse,median_err_to_sparse,...
+                                                        quant25_err_to_sparse,quant75_err_to_sparse, choose_logy,...
+                                                        method_array,iter_save,maxiter,minmaxcolor_dict,...
+                                                        quantcolor_dict,linecolor_dict,displayname_dict);
+
+        %legend(medianplot_array, 'location', 'northeast');
+
+        % remove legend
+        leg = legend('figure()');
+        set(leg,'visible','off')
+
+        xlabel('$k$','Interpreter','latex')
+        ylabel('$$\|x-\hat x\|/\|\hat x\|$$','Interpreter','latex')
+
+        hold off                                                
+
+
+
+
+
+
+
+
+        %% Plot results for distance to the Moore-Penrose inverse solution 
+        %{
+        subplot(1,4,4)
+
+        hold on 
+
+        choose_logy = true;
+
+        plot_minmax_median_quantiles('-',min_err_to_moorepi,max_err_to_moorepi,median_err_to_moorepi,...
+                                                        quant25_err_to_moorepi,quant75_err_to_moorepi,choose_logy,...);
+                                                        method_array,iter_save,maxiter,minmaxcolor_dict,...
+                                                        quantcolor_dict,linecolor_dict,displayname_dict);
+        hold off                                                
+
+        title('$$\|x-x^\dagger\|/\|x^\dagger\|$$','Interpreter','latex')
+        %}
+
+
+
+
+
+
+        %% Plot quantities for stopping criterion
+
+        method_counters_with_stopping = [find(strcmp(method_array,{'grek_1'})), find(strcmp(method_array,{'grek_2'}))...
+                                         find(strcmp(method_array,{'grek_3'})), find(strcmp(method_array,{'egrek'}))]; % plot only for these methods
+        grek_method_array = {method_array{strcmp(method_array,{'grek_1'})},method_array{strcmp(method_array,{'grek_2'})},...
+                             method_array{strcmp(method_array,{'grek_3'})}, method_array{strcmp(method_array,{'egrek'})}};
+
+
+
+
+        figure
+
+        sgtitle(sprintf('Quantities for stopping criterion, solid line: deterministic one, \n dashed line: Stochastic substitute computed in the algorithm'))
+
+
+
+        %  plot stochastic substitute for ||A*x_k + b - zstar_k||  together with ||A*x_k + b - zstar_k||
+        subplot(1,2,1)
+        hold on
+        choose_logy = true;
+
+        plot_array = plot_minmax_median_quantiles('-',...
+            min_resAbz_mean_list(:,method_counters_with_stopping),...
+            max_resAbz_mean_list(:,method_counters_with_stopping),...
+            median_resAbz_mean_list(:,method_counters_with_stopping),...
+            quant25_resAbz_mean_list(:,method_counters_with_stopping),...
+            quant75_resAbz_mean_list(:,method_counters_with_stopping),...
+            choose_logy,grek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+
+        plot_minmax_median_quantiles(':',...
+            min_resAbz_list(:,method_counters_with_stopping),...
+            max_resAbz_list(:,method_counters_with_stopping),...
+            median_resAbz_list(:,method_counters_with_stopping),...
+            quant25_resAbz_list(:,method_counters_with_stopping),...
+            quant75_resAbz_list(:,method_counters_with_stopping),...
+            choose_logy,grek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+
+        if length(method_counters_with_stopping) > 1
+           legend(plot_array, 'location', 'northwest');
         end
-        leg = legend({'x_{hat}','x'}, 'location', 'northwest');
-        if writeout
-            set(leg,'visible','off')
+
+        xlabel('$$k$$','Interpreter','latex')
+        ylabel('$$\|Ax+b-z^*||_2/\|\hat b\|$$','Interpreter','latex')
+
+        hold off
+
+
+
+        % plot stochastic substitute for ||ATz_k|| together with ||ATz_k||
+        subplot(1,2,2) 
+        hold on
+        choose_logy = true;
+
+        plot_minmax_median_quantiles('-',...
+            min_resATz_list(:,method_counters_with_stopping),...
+            max_resATz_list(:,method_counters_with_stopping),...
+            median_resATz_list(:,method_counters_with_stopping),...
+            quant25_resATz_list(:,method_counters_with_stopping),...
+            quant75_resATz_list(:,method_counters_with_stopping),...
+            choose_logy,grek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+
+        plot_minmax_median_quantiles(':',...
+            min_resATz_mean_list(:,method_counters_with_stopping),...
+            max_resATz_mean_list(:,method_counters_with_stopping),...
+            median_resATz_mean_list(:,method_counters_with_stopping),...
+            quant25_resATz_mean_list(:,method_counters_with_stopping),...
+            quant75_resATz_mean_list(:,method_counters_with_stopping),...
+            choose_logy,grek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+
+        if length(method_counters_with_stopping) > 1
+           legend(medianplot_array, 'location', 'northwest');
         end
-        
-        if writeout
-            matlab2tikz('width','\figurewidth',...
-             'extraaxisoptions',['legend style={font=\scriptsize},'], ...
-            [dir_to_fig '/x_components_' method_array{method_counter} '.tex']);
-        end
-            
-        if any( strcmp( method_array{method_counter}, {'grek_1','grek_2','egrek'} )  )
-            
-            % plot iterate after stopping
+
+        xlabel('$$k$$','Interpreter','latex')
+        ylabel('$$\|A^Tz\|/\|\hat b\|$$','Interpreter','latex')
+
+        hold off
+
+        %% Plot quantities for stopping criterion for only last iterate
+
+        figure
+
+        % plot stochastic substitute for ||Ax-b+z^star||_2^2/norm(b)
+        subplot(1,2,1)
+        hold on
+        choose_logy = true;
+        plot_stopped_quantity(resAbz_mean_list,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
+        title('$$Stoch. subst. for \|Ax+b-z^*||_2/\|\hat b\|$$ for last iterate','Interpreter','latex')
+
+        % plot stochastic substitute for ||A^Tz_k||_2^2/norm(b)
+        subplot(1,2,2)
+        hold on
+        choose_logy = true;
+        plot_stopped_quantity(resATz_mean_list,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
+        title('$$Stoch. subst. for \|A^Tz||_2/\||\hat b\|$$ for last iterate','Interpreter','latex')
+
+
+
+
+
+
+
+
+        %% Plot error quantities after stopping for the last iterate x_k for the last instance
+          % (only for SREK and ESREK method, each method in a single plot)
+
+
+
+        % only plot stopping iteration after
+
+        figure
+
+        sgtitle('Errors for one random instance, circle indicates value at stopped iteration')
+
+        % plot stopped res
+        subplot(1,3,1)
+        hold on
+        choose_logy = true;
+        plot_array = plot_stopped_quantity(res,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
+        xlabel('$k$','Interpreter','latex')
+        ylabel('$$\|Ax-\hat b\|/\|\hat b\|$$','Interpreter','latex')
+        legend(plot_array, 'location', 'northwest');
+
+        % plot stopped grad z functional
+        subplot(1,3,2)
+        hold on
+        choose_logy = true;
+        plot_stopped_quantity(grad_zfunctional,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
+        xlabel('$k$','Interpreter','latex')
+        ylabel('$$\|A^T \nabla g^*(\hat b-Ax)\|/\|\hat b\|$$','Interpreter','latex')
+
+        % plot stopped reconstruction error 
+        subplot(1,3,3)
+        hold on
+        choose_logy = true;
+        plot_stopped_quantity(err_to_sparse,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict);
+        xlabel('$k$','Interpreter','latex')
+        ylabel('$$\|x-\hat x\|/\|\hat x\|$$','Interpreter','latex')
+
+
+
+
+
+        %% Plot entries of b_exact vs. and b xhat vs. the last iterate x_k 
+
+        % b_exact vs. b
+
+        if real_setting
             figure
-            x = xstop_list(:,num_repeats,method_counter);
+            plot_array = plot(1:m,b_exact,1:m,b,':'); title('b_{hat}, b');
+        else
+            figure
+            plot_array = plot(1:m,abs(b_exact),1:m,abs(b),':'); title('|b_{hat}|, |b|');
+        end
+
+        legend(plot_array, {'b','noisy b'}, 'location', 'northwest')
+
+
+
+
+
+
+
+        for method_counter = 1:length(method_array)    
+
+            % plot last iterate
+            figure
+            x = x_last_test_instance(:,method_counter);
             if ~real_setting  % plot absolute values
                 xhat = abs(xhat);
                 x = abs(x);
-            end        
-            stem(xhat,'color','blue'); 
+            end
+            stem(xhat,'color','blue')
             hold on
             stem(x,'color','red')
-            legend({'x_{hat}','x'}, 'location', 'northwest')
-            title('After stopping');
-            
+            title(['After all iterations, ' method_array{method_counter} ' method: x_{hat} (blue), nnz_{hat}=', num2str(sp),', x (red), nnz=', num2str(length(find(abs(x)>1e-5))),' , M-Mult=',num2str(round(iter/max(m,n)))]);
+            leg = legend({'x_{hat}','x'}, 'location', 'northwest');
+
+            if any( strcmp( method_array{method_counter}, {'grek_1','grek_2','egrek'} )  )
+
+                % plot iterate after stopping
+                figure
+                x = xstop_list(:,num_repeats,method_counter);
+                if ~real_setting  % plot absolute values
+                    xhat = abs(xhat);
+                    x = abs(x);
+                end        
+                stem(xhat,'color','blue'); 
+                hold on
+                stem(x,'color','red')
+                legend({'x_{hat}','x'}, 'location', 'northwest')
+                title('After stopping');
+
+            end
+
         end
-        
+
     end
+    
+    
+    
+    
+    
+    
+    %% generate & save subplot for paper (if writeout) 
+
+    if writeout
+  
+
+        % ||Ax-\hat b||
+        sgtitle(sprintf('Errors, m = %d, n = %d, s = %d, repeats = %d',m,n,sp,num_repeats));
+        subplot(2,4,1)
+        choose_logy = true;
+        plot_array = plot_minmax_median_quantiles('-',min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+        leg = legend(plot_array, 'location', 'southwest');
+        if writeout
+            set(leg,'visible','off')  % remove legend
+        end
+
+        xlabel('$k$','Interpreter','latex')
+        ylabel('$$\|Ax-\hat b\|/\|\hat b\|$$','Interpreter','latex')
+        
+
+
+        % ||A^T\nabla g^*(\hat b-Ax)||
+        subplot(2,4,2)
+        choose_logy = true;
+        plot_minmax_median_quantiles('-',min_grad_zfunctional,max_grad_zfunctional,median_grad_zfunctional,...
+                                                        quant25_grad_zfunctional,quant75_grad_zfunctional,choose_logy, ...
+                                                        method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
+                                                        linecolor_dict,displayname_dict);
+        xlabel('$k$','Interpreter','latex')
+        ylabel('$$\|A^T\nabla g^*(\hat b-Ax)\|/\|\hat b\|$$','Interpreter','latex')
+
+        % remove legend
+        leg = legend('figure()');
+        set(leg,'visible','off')
+
+
+
+        % || x-\hat x||   
+        subplot(2,4,3)
+        choose_logy = true;
+        plot_minmax_median_quantiles('-',min_err_to_sparse,max_err_to_sparse,median_err_to_sparse,...
+                                                        quant25_err_to_sparse,quant75_err_to_sparse, choose_logy,...
+                                                        method_array,iter_save,maxiter,minmaxcolor_dict,...
+                                                        quantcolor_dict,linecolor_dict,displayname_dict);
+
+        %legend(medianplot_array, 'location', 'northeast');
+
+        % remove legend
+        leg = legend('figure()');
+        set(leg,'visible','off')  
+        xlabel('$k$','Interpreter','latex')
+        ylabel('$$\|x-\hat x\|/\|\hat x\|$$','Interpreter','latex')      
+
+        % remove legend
+        leg = legend('figure()');
+        set(leg,'visible','off')
+
+
+        % b_exact vs. b
+        
+        s = subplot(2,4,4);
+        delete(s)
+
+        subplot(2,4,5)
+
+        if real_setting
+            plot_array = plot(1:m,b_exact,1:m,b,':'); 
+        else
+            plot_array = plot(1:m,abs(b_exact),1:m,abs(b),':'); 
+        end
+
+        % remove legend
+        leg = legend('figure()');
+        set(leg,'visible','off')  
+
+
+
+
+        % stem plots of last iterates
+
+        plot_nr = 6;
+
+        for method_counter = 1:length(method_array) 
+
+            subplot(2,4,plot_nr)
+
+            % plot last iterate
+            x = x_last_test_instance(:,method_counter);
+            if ~real_setting  % plot absolute values
+                xhat = abs(xhat);
+                x = abs(x);
+            end
+            stem(xhat,'color','blue')
+            hold on
+            stem(x,'color','red')
+            leg = legend({'x_{hat}','x'}, 'location', 'northwest');
+            set(leg,'visible','off')            
+
+            plot_nr = plot_nr + 1;
+
+        end
+
+
+
+
+        % save figure with matlab2tikz
+
+        matlab2tikz('width','\figurewidth',...
+        'extraaxisoptions','legend style={font=\scriptsize},', ...
+        [dir_to_fig '/err_over_iter.tex']);
+
+    
+    
+    end
+    
+        
+
 
 
 
