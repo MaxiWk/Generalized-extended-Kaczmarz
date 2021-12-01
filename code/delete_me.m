@@ -1,12 +1,11 @@
-subplot(2,2,1)
-x = linspace(0,1,100);
-plot(x,x.^2)
+A = [1 2 5; -2 11 13; -4 7 3];
 
-subplot(2,2,2)
-x = linspace(0,1,100);
-plot(x,x.^2)
+x = [1 1 -1]';
 
-subplot(2,1,1)
-x = linspace(0,1,100);
-plot(x,x.^2)
+bG = A*x
 
+
+A = [2 1 7 2 ; 1 4 -8 -2; 3 5 -1 0];
+
+x = [0 1 -1 2]';
+bK = A*x

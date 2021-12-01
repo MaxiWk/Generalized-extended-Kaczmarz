@@ -1,4 +1,4 @@
-function data = experiment(n,m,sp,real_setting,lambda,T,L_gstar,maxiter,num_repeats,iter_save,rowsamp,colsamp,writeout,dir_to_fig,disp_instance,savestep,stopcrit_sample_pars,method_array,experiment_description)
+function data = experiment(n,m,sp,real_setting,lambda,T,L_gstar,maxiter,num_repeats,iter_save,rowsamp,colsamp,writeout,dir_to_figures,fig_folder_name,disp_instance,savestep,stopcrit_sample_pars,method_array,experiment_description)
 % Experiment to ompare usual extended Kaczmarz, sparse Kaczmarz and sparse extended Kaczmarz (all randomized)
 % The parameters are:
 %  n: number of columns
@@ -10,6 +10,7 @@ function data = experiment(n,m,sp,real_setting,lambda,T,L_gstar,maxiter,num_repe
 %  Needs to match also to L_gstar_1, L_gstar_2, ...
 %  We require length(T) == length(L_gstar) < 3 if cell array
 %  We use 
+%  g^*(x) = 1/2 ||x||_2^2 or 
 %  g^*(x) = r_epsilon(x) + tau/2 ||x||_2^2 with Huber function r_epsilon =
 %  ^{epsilon} ||.||_1 (Moreau-envelope of 1-norm)
 %  Here always gradient f^* = soft shrinkage with parameter lambda
@@ -24,8 +25,9 @@ function data = experiment(n,m,sp,real_setting,lambda,T,L_gstar,maxiter,num_repe
 %        random
 %  colsamp: Analogously for column sampling in case of extended Kaczmarz
 %  writeout: boolean (if true generate subplot as in paper and save it with matlab2tikz, if false show single plots with titles and do not save them)
-%  dir_to_fig: Directory to folder where to save figures with matlab2tikz
+%  dir_to_figures: Directory to folder where to save figures with matlab2tikz
 %  in case of writeout==true
+%  fig_folder_name: in case of writeout==true: is added on dir_to_figures and in the name of the error
 %  disp_instance: boolean (if true disp b_exact, the right-hand side without noise, and xhat, the exact sparse solution)
 %  savestep: Only each "savesteps"th data point will be stored
 %  stopcrit_sample_pars: struct with tolerances for stopping criterion, see set_up_instance
@@ -48,6 +50,7 @@ function data = experiment(n,m,sp,real_setting,lambda,T,L_gstar,maxiter,num_repe
 
 
 
+addpath('/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/ExtendedSparseKaczmarz_octave')
 addpath('./matlab2tikz')
 
 disp(experiment_description)
@@ -226,7 +229,7 @@ for repeats = 1:num_repeats
               c = A(:,s);
               
               
-              %%%%%%%%%%%%
+              %%%%%%%%%%%% 
               % 2.: check stopping criterion
 
               resAbz_sampled(iter) = (a*x-b(r)+zdual(r));
@@ -393,22 +396,22 @@ end  % end for loop over repeats
     mediumcyan =  [0.6 1 1];
 
     linecolor_dict = containers.Map();
-    linecolor_dict('rk') = 'k';
+    linecolor_dict('rk') = 'c';
     linecolor_dict('srk') = 'b';
     linecolor_dict('esrk') = 'y';
-    linecolor_dict('rek') = 'c';
+    linecolor_dict('rek') = 'k';
     linecolor_dict('grek_1') = 'r';
     linecolor_dict('grek_2') = 'g';
-    linecolor_dict('grek_3') = 'k';
+    linecolor_dict('grek_3') = 'y';
     linecolor_dict('egrek') = 'g';
     %linecolor_dict('det_sek') = 'c';
     linecolor_dict('lin_breg') = 'k';
 
     minmaxcolor_dict = containers.Map();
-    minmaxcolor_dict('rk') = lightgray;
+    minmaxcolor_dict('rk') = lightcyan;
     minmaxcolor_dict('srk') = lightblue;
     minmaxcolor_dict('esrk') = lightyellow;
-    minmaxcolor_dict('rek') = lightcyan;
+    minmaxcolor_dict('rek') = lightgray;
     minmaxcolor_dict('grek_1') = lightred;
     minmaxcolor_dict('grek_2') = lightgreen;
     minmaxcolor_dict('grek_3') = lightgray;
@@ -417,10 +420,10 @@ end  % end for loop over repeats
     minmaxcolor_dict('lin_breg') = lightgray; 
 
     quantcolor_dict = containers.Map();
-    quantcolor_dict('rk') = mediumgray;
+    quantcolor_dict('rk') = mediumcyan;
     quantcolor_dict('srk') = mediumblue;
     quantcolor_dict('esrk') = mediumyellow;
-    quantcolor_dict('rek') = mediumcyan;
+    quantcolor_dict('rek') = mediumgray;
     quantcolor_dict('grek_1') = mediumred; 
     quantcolor_dict('grek_2') = mediumgreen; 
     quantcolor_dict('grek_3') = mediumgray; 
@@ -519,7 +522,7 @@ end  % end for loop over repeats
                                                         linecolor_dict,displayname_dict);
 
         xlabel('$k$','Interpreter','latex')
-        ylabel('$$\|A^T\nabla g^*(\hat b-Ax)\|/\|\hat b\|$$','Interpreter','latex')
+        ylabel('$$\|\nabla_x g^*(\hat b-Ax)\|/\|\hat b\|$$','Interpreter','latex')
 
         % remove legend
         leg = legend('figure()');
@@ -683,7 +686,7 @@ end  % end for loop over repeats
         hold on
         choose_logy = true;
 
-        plot_minmax_median_quantiles('-',...
+        plot_array = plot_minmax_median_quantiles('-',...
             min_resATz_list(:,method_counters_with_stopping),...
             max_resATz_list(:,method_counters_with_stopping),...
             median_resATz_list(:,method_counters_with_stopping),...
@@ -700,7 +703,7 @@ end  % end for loop over repeats
             choose_logy,grek_method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
 
         if length(method_counters_with_stopping) > 1
-           legend(medianplot_array, 'location', 'northwest');
+           legend(plot_array, 'location', 'northwest');
         end
 
         xlabel('$$k$$','Interpreter','latex')
@@ -838,10 +841,9 @@ end  % end for loop over repeats
 
     if writeout
   
-
         % ||Ax-\hat b||
         sgtitle(sprintf('Errors, m = %d, n = %d, s = %d, repeats = %d',m,n,sp,num_repeats));
-        subplot(2,4,1)
+        subplot(1,3,1)
         choose_logy = true;
         plot_array = plot_minmax_median_quantiles('-',min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
         leg = legend(plot_array, 'location', 'southwest');
@@ -855,14 +857,14 @@ end  % end for loop over repeats
 
 
         % ||A^T\nabla g^*(\hat b-Ax)||
-        subplot(2,4,2)
+        subplot(1,3,2)
         choose_logy = true;
         plot_minmax_median_quantiles('-',min_grad_zfunctional,max_grad_zfunctional,median_grad_zfunctional,...
                                                         quant25_grad_zfunctional,quant75_grad_zfunctional,choose_logy, ...
                                                         method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
                                                         linecolor_dict,displayname_dict);
         xlabel('$k$','Interpreter','latex')
-        ylabel('$$\|A^T\nabla g^*(\hat b-Ax)\|/\|\hat b\|$$','Interpreter','latex')
+        ylabel('$$\|A^T \nabla g^*(\hat b-Ax)\|/\|\hat b\|$$','Interpreter','latex')
 
         % remove legend
         leg = legend('figure()');
@@ -871,7 +873,7 @@ end  % end for loop over repeats
 
 
         % || x-\hat x||   
-        subplot(2,4,3)
+        subplot(1,3,3)
         choose_logy = true;
         plot_minmax_median_quantiles('-',min_err_to_sparse,max_err_to_sparse,median_err_to_sparse,...
                                                         quant25_err_to_sparse,quant75_err_to_sparse, choose_logy,...
@@ -884,52 +886,63 @@ end  % end for loop over repeats
         leg = legend('figure()');
         set(leg,'visible','off')  
         xlabel('$k$','Interpreter','latex')
-        ylabel('$$\|x-\hat x\|/\|\hat x\|$$','Interpreter','latex')      
-
-        % remove legend
-        leg = legend('figure()');
-        set(leg,'visible','off')
-
-
-        % b_exact vs. b
+        ylabel('$$\|x-\hat x\|/\|\hat x\|$$','Interpreter','latex')   
         
-        s = subplot(2,4,4);
-        delete(s)
-
-        subplot(2,4,5)
-
-        if real_setting
-            plot_array = plot(1:m,b_exact,1:m,b,':'); 
-        else
-            plot_array = plot(1:m,abs(b_exact),1:m,abs(b),':'); 
-        end
-
-        % remove legend
-        leg = legend('figure()');
-        set(leg,'visible','off')  
-
+        
+        % save first row of figures with matlab2tikz
+        matlab2tikz('width','\figurewidth',...
+        'extraaxisoptions','legend style={font=\scriptsize},', ...
+        [dir_to_figures '/' fig_folder_name '/err_over_iter.tex']);
 
 
 
         % stem plots of last iterates
+        
+        figure
+        
+        % b_exact vs. b       
 
-        plot_nr = 6;
+        subplot(1,5,1)
+
+        if real_setting 
+            plot(1:m,b_exact,1:m,b,':'); 
+        else
+            plot(1:m,abs(b_exact),1:m,abs(b),':'); 
+        end
+        
+        axis square
+
+        % remove legend and xlabels
+        leg = legend('figure()');
+        set(leg,'visible','off')
+        set(gca,'XTick',[])
+        
+         
+        plot_nr = 2;
 
         for method_counter = 1:length(method_array) 
 
-            subplot(2,4,plot_nr)
+            subplot(1,5,plot_nr)
 
-            % plot last iterate
+            % only plot last iterate
             x = x_last_test_instance(:,method_counter);
+            
+            % prepare x and xhat for getting plot
+            tol_plot = 1e-5;
+            %xhat = xhat(abs(x) > tol_plot);
+            %x = x(abs(x) > tol_plot);
             if ~real_setting  % plot absolute values
                 xhat = abs(xhat);
                 x = abs(x);
             end
+            
             stem(xhat,'color','blue')
             hold on
             stem(x,'color','red')
+            axis square
             leg = legend({'x_{hat}','x'}, 'location', 'northwest');
-            set(leg,'visible','off')            
+            set(leg,'visible','off')   
+            set(gca,'XTick',[])
 
             plot_nr = plot_nr + 1;
 
@@ -942,7 +955,7 @@ end  % end for loop over repeats
 
         matlab2tikz('width','\figurewidth',...
         'extraaxisoptions','legend style={font=\scriptsize},', ...
-        [dir_to_fig '/err_over_iter.tex']);
+        [dir_to_figures '/' fig_folder_name '/x_components.tex']);
 
     
     

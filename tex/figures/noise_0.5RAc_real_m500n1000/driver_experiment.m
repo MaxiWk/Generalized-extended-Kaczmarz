@@ -1,36 +1,40 @@
-dir_to_folder_with_figures = 'plots/Franks_example_complex_impulsive_noise';
+fig_folder_name = 'noise_0.5RAc_complex_m500n1000';
+dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/ExtendedSparseKaczmarz_octave/tex/figures/';
 
-m = 800;  % 500 
-n = 600;  % 200
-sp = ceil(n/40);   % 20
+m = 500;  % 500 
+n = 1000;  % 1000
+sp = 25;   % 25
 
 
-num_repeats = 1; % 5 
+num_repeats = 50; 
 
-real_setting = false;
+real_setting = true;
 
-maxiter = 100 *max(m,n); % Number of iterations % 5e6
+maxiter = 1e6; % Number of iterations % 5e6
 number_data_points = 500;
 iter_save = floor(maxiter/number_data_points);  % each such number of iterations, a data point is added in the error plot
 
 rowsamp = 'rownorms squared';
 colsamp = 'colnorms squared';
 
-lambda_value = 10;  
+lambda_value = 5;  
+
+T_1 = @(z) z;  % gradient gstar for g(x) = 1/2 ||x||_2^2 
+L_gstar_1 = 1;
 
 % T for Frank's example
 epsilon = 0.01;
 tau = 0.001;
-T_1 = @(x) T_taureg(x,epsilon,tau);
-L_gstar_1= 1/epsilon + tau;
+T_2 = @(x) T_taureg(x,epsilon,tau);
+L_gstar_2 = 1/epsilon + tau;
 
-writeout = false; 
+writeout = true; 
 
 savestep = 1; 
 
-method_array = {'grek_1'}; 
+method_array = {'rek', 'srk', 'grek_1'}; 
 
-%experiment_description = 'rank-deficient, medium noise in R(A) complement';
+experiment_description = 'rank-deficient, medium noise in R(A) complement';
 % noise0.5_rangeAc
 
 %experiment_description = 'rank-deficient, large noise in R(A) complement';
@@ -58,21 +62,19 @@ method_array = {'grek_1'};
 
 %experiment_description = 'rank deficient, consistent, no noise';
 
-experiment_description = 'Franks example, complex_impulsive_noise_and_add_noise';
-
 disp_instance = false;
 
 stopcrit_sample_pars.length_resAbz_sampled = ceil(m/2);
 stopcrit_sample_pars.length_resATz_sampled = ceil(n/2);
 stopcrit_sample_pars.min_possible_iter_for_stopping = 4*max(m,n);
-T = {T_1};
-L_gstar = [L_gstar_1];
+T = {T_1,T_2};
+L_gstar = [L_gstar_1,L_gstar_2];
 
 data = experiment(n,m,sp,real_setting,lambda_value,T,L_gstar,maxiter,num_repeats,iter_save,rowsamp,colsamp,...
-                  writeout,disp_instance,savestep,stopcrit_sample_pars,method_array,experiment_description);                           
+                  writeout,dir_to_figures,fig_folder_name,disp_instance,savestep,stopcrit_sample_pars,method_array,experiment_description);                           
 
-save(fullfile(dir_to_folder_with_figures, 'data.mat'), 'data', '-mat');
-save_figures(dir_to_folder_with_figures)
+save(fullfile(dir_to_figures, 'data.mat'), 'data', '-mat');
+%save_figures(dir_to_folder_with_figures)
                               
                               
                               

@@ -534,7 +534,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           
   case 'impulsive noise, rank deficient'
   
-          num_comp_noise = ceil(min(m,n)/20);
+          num_comp_noise = 10;
           noiselev_impulsive_noise_factor = 10;
           
           rank = round(min(m,n)/2);
@@ -593,7 +593,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           
     case 'impulsive noise, rank-deficient, A with unif distr sv, well-conditioned A and xhat'
   
-          num_comp_noise = ceil(min(m,n)/20);
+          num_comp_noise = min(m,n)/20;
           noiselev_impulsive_noise_factor = 10;
 
           rank = round(min(m,n)/2);

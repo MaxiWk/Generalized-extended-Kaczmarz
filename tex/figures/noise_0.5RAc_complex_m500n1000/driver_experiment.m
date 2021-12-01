@@ -73,8 +73,8 @@ L_gstar = [L_gstar_1,L_gstar_2];
 data = experiment(n,m,sp,real_setting,lambda_value,T,L_gstar,maxiter,num_repeats,iter_save,rowsamp,colsamp,...
                   writeout,dir_to_figures,fig_folder_name,disp_instance,savestep,stopcrit_sample_pars,method_array,experiment_description);                           
 
-save(fullfile([dir_to_figures '/' fig_folder_name, '/data.mat']), 'data', '-mat');
-
+save(fullfile(dir_to_figures, 'data.mat'), 'data', '-mat');
+%save_figures(dir_to_folder_with_figures)
                               
                               
                               
