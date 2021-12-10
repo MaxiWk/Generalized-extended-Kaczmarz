@@ -1,4 +1,4 @@
-fig_folder_name = 'impulsive_noise_complex_m500n1000_lambda50';
+fig_folder_name = 'impulsive_noise_complex_m500n1000_lambda5_unif';
 dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/ExtendedSparseKaczmarz_octave/tex/figures/';
 
 
@@ -7,13 +7,13 @@ n = 500; % DCT matrix: n=1000  % otherwise: 200/500
 sp = 25; 
 %sp = min(5,n); % as before
 
-
 real_setting = false; 
 
-maxiter = 1e6;  
+maxiter = 3e6;  
 
+num_repeats = 5; 
 
-num_repeats = 2; 
+writeout = false;
 
 iter_save = ceil(maxiter/500);  % each such number of iterations, a data point is added in the error plot
 
@@ -52,19 +52,14 @@ L_gstar = [L_gstar_1, L_gstar_2];
 %L_gstar = mu* max(1/epsilon,1) + 1;
 %T = @(x) T_repsilon_shrinkage(x,epsilon,r_epsilon_factor,shrinkage_par);  % L_gstar = r_epsilon_factor* max(1/epsilon,1) + 1;
 
-writeout = false;
-
 savestep = 1; 
 
 %method_array = {'rek','srk','grek_1','grek_2'}; 
 method_array = {'grek_2'}; 
 
-experiment_description = 'impulsive noise, rank deficient';
-%experiment_description = 'impulsive noise, rank-deficient, A with unif distr sv, well-conditioned A and xhat';
-%experiment_description = 'impulsive noise, rank-deficient, A with unif distr sv, medium-conditioned A';
-%experiment_description = 'impulsive noise and 1% additional noise, rank-deficient, bad-conditioned A and xhat';
-%experiment_description = 'dctmatrix, impulsive noise';
-%experiment_description = 'impulsive noise, full rank';
+%experiment_description = 'impulsive noise, rank deficient, normalsqr, well-conditioned';
+experiment_description = 'impulsive noise, rank deficient, uniform, well-conditioned';
+
 
 median_res = zeros(maxiter,length(method_array));
 
