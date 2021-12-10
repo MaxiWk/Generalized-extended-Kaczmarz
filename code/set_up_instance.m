@@ -540,7 +540,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           rank = round(min(m,n)/2);
           sing_values_data.distribution = 'normalsqr';
           sing_values_data.mu = 0;
-          sing_values_data.stddev = 1;
+          sing_values_data.stddev = 0.5;
           
 
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);

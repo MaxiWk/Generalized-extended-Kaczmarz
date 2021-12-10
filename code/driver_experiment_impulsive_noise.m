@@ -56,7 +56,8 @@ writeout = false;
 
 savestep = 1; 
 
-method_array = {'rek','srk','grek_1','grek_2'}; 
+%method_array = {'rek','srk','grek_1','grek_2'}; 
+method_array = {'grek_2'}; 
 
 experiment_description = 'impulsive noise, rank deficient';
 %experiment_description = 'impulsive noise, rank-deficient, A with unif distr sv, well-conditioned A and xhat';
