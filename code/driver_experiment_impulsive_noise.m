@@ -1,6 +1,5 @@
-fig_folder_name = 'impulsive_noise_complex_m500n1000_lambda5_unif';
-dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/ExtendedSparseKaczmarz_octave/tex/figures/';
-
+fig_folder_name = 'impulsive_noise_complex_m500n1000_unif_lambda5_bad_condition';
+dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/ExtendedSparseKaczmarz_octave/code/meeting_10_12/';
 
 m = 1000; % DCT matrix: m=2000  % otherwise: 500/200
 n = 500; % DCT matrix: n=1000  % otherwise: 200/500
@@ -9,9 +8,9 @@ sp = 25;
 
 real_setting = false; 
 
-maxiter = 3e6;  
+maxiter = 1e7;  
 
-num_repeats = 5; 
+num_repeats = 2; 
 
 writeout = false;
 
@@ -24,13 +23,13 @@ colsamp = 'colnorms squared';
 
 % f(x) = epsilon/2 ||x||_2^2 + gamma ||x||_1  Nonsparse: Set gamma=0.
 % T = grad g^*, see below for different T
-lambda = 5;   
+lambda = 10;   
 %gamma = 0.1;
 epsilon = 1e-4;    % 0.01
 tau = 0.001;    
 %mu = 1;
 r_epsilon_factor = 0.1;
-shrinkage_par = 1; 
+shrinkage_par = 10; 
 
 T_1 = @(x) x;
 L_gstar_1 = 1;
@@ -57,9 +56,9 @@ savestep = 1;
 %method_array = {'rek','srk','grek_1','grek_2'}; 
 method_array = {'grek_2'}; 
 
-%experiment_description = 'impulsive noise, rank deficient, normalsqr, well-conditioned';
-experiment_description = 'impulsive noise, rank deficient, uniform, well-conditioned';
-
+%experiment_description = 'impulsive noise, rank deficient, uniform, well conditioned';
+%experiment_description = 'impulsive noise, rank deficient, normalsqr, medium conditioned';
+experiment_description = 'impulsive noise, rank deficient, uniform, bad conditioned';
 
 median_res = zeros(maxiter,length(method_array));
 

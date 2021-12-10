@@ -532,7 +532,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
  
  
           
-  case 'impulsive noise, rank deficient, normalsqr, well-conditioned'
+  case 'impulsive noise, rank deficient, normalsqr, well conditioned'
   
           num_comp_noise = ceil(min(m,n)/20);
           noiselev_impulsive = 10;
@@ -561,7 +561,8 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           
           
           
-  case 'impulsive noise, rank deficient, uniform, well-conditioned'
+          
+  case 'impulsive noise, rank deficient, uniform, well conditioned'
   
           num_comp_noise = ceil(min(m,n)/20);
           noiselev_impulsive = 10;
@@ -586,7 +587,64 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           
           tol_resAbz = noiselev_impulsive*1e-6;
           tol_resATz = noiselev_impulsive*1e-3; 
+ 
           
+          
+          
+  case 'impulsive noise, rank deficient, uniform, medium conditioned'
+  
+          num_comp_noise = ceil(min(m,n)/20);
+          noiselev_impulsive = 10;
+          
+          rank = round(min(m,n)/2);
+          sing_values_data.distribution = 'uniform';
+          sing_values_data.sigma_min = 1e-3;
+          sing_values_data.sigma_max = 10;
+          
+
+          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
+          xhat = sparserandn(n,sp);  % true solution          
+          b_exact = A*xhat;               % exact data
+          
+          num_comp_noise = min(m,num_comp_noise);
+          perm = randperm(m);
+          b = b_exact;
+          
+          noise = randn(num_comp_noise,1);
+          b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
+          
+          tol_resAbz = noiselev_impulsive*1e-6;
+          tol_resATz = noiselev_impulsive*1e-3;           
+
+          
+          
+ case 'impulsive noise, rank deficient, uniform, bad conditioned'
+  
+          num_comp_noise = ceil(min(m,n)/20);
+          noiselev_impulsive = 10;
+          
+          rank = round(min(m,n)/2);
+          sing_values_data.distribution = 'uniform';
+          sing_values_data.sigma_min = 1e-3;
+          sing_values_data.sigma_max = 100;
+          
+
+          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
+          xhat = sparserandn(n,sp);  % true solution          
+          b_exact = A*xhat;               % exact data
+          
+          num_comp_noise = min(m,num_comp_noise);
+          perm = randperm(m);
+          b = b_exact;
+          
+          noise = randn(num_comp_noise,1);
+          b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
+          
+          tol_resAbz = noiselev_impulsive*1e-6;
+          tol_resATz = noiselev_impulsive*1e-3; 
+ 
           
     
           
@@ -620,7 +678,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           
           
           
-    case 'impulsive noise, rank-deficient, A with unif distr sv, well-conditioned A and xhat'
+    case 'impulsive noise, rank-deficient, A with unif distr sv, well conditioned A and xhat'
   
           num_comp_noise = ceil(min(m,n)/20);
           noiselev_impulsive_noise_factor = 10;
@@ -685,7 +743,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           
           
 
-     case 'impulsive noise, rank-deficient, A with unif distr sv, bad-conditioned A'
+     case 'impulsive noise, rank-deficient, A with unif distr sv, bad conditioned A'
   
           num_comp_noise = min(m,n)/20;
           noiselev_impulsive_noise_factor = 10;
@@ -717,7 +775,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
 
           
           
-     case 'less impulsive noise, rank-deficient, A with unif distr sv, bad-conditioned A'
+     case 'less impulsive noise, rank-deficient, A with unif distr sv, bad conditioned A'
   
           num_comp_noise = min(m,n)/20;
           noiselev_impulsive_noise_factor = 2;
@@ -748,7 +806,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           tol_resATz = 0.5*1e-4*noiselev_impulsive; 
           
 
-   case 'impulsive noise and 10% additional noise, rank-deficient, bad-conditioned A and xhat'
+   case 'impulsive noise and 10% additional noise, rank-deficient, bad conditioned A and xhat'
   
           num_comp_noise = 10;
           noiselev_impulsive_noise_factor = 10;
@@ -781,7 +839,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
  
           
           
-     case 'impulsive noise and 1% additional noise, rank-deficient, bad-conditioned A and xhat'
+     case 'impulsive noise and 1% additional noise, rank-deficient, bad conditioned A and xhat'
   
           num_comp_noise = 10;
           noiselev_impulsive_noise_factor = 10;
