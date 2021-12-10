@@ -535,10 +535,9 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
   case 'impulsive noise, rank deficient'
   
           num_comp_noise = ceil(min(m,n)/20);
-          noiselev_impulsive_noise_factor = 10;
+          noiselev_impulsive = 10;
           
           rank = round(min(m,n)/2);
-          real_setting = true;
           sing_values_data.distribution = 'normal';
           sing_values_data.mu = 0;
           sing_values_data.stddev = 1;
@@ -552,12 +551,11 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           perm = randperm(m);
           b = b_exact;
           
-          noiselev_impulsive = noiselev_impulsive_noise_factor *norm(b);
           noise = randn(num_comp_noise,1);
           b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
           
-          tol_resAbz = noiselev_impulsive_noise_factor*noiselev_impulsive*1e-6;
-          tol_resATz = noiselev_impulsive_noise_factor*noiselev_impulsive*1e-3; 
+          tol_resAbz = noiselev_impulsive*1e-6;
+          tol_resATz = noiselev_impulsive*1e-3; 
           
     
           

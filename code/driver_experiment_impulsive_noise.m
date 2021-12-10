@@ -10,10 +10,10 @@ sp = 25;
 
 real_setting = false; 
 
-maxiter = 3e6;  
+maxiter = 1e6;  
 
 
-num_repeats = 50; 
+num_repeats = 2; 
 
 iter_save = ceil(maxiter/500);  % each such number of iterations, a data point is added in the error plot
 
@@ -24,7 +24,7 @@ colsamp = 'colnorms squared';
 
 % f(x) = epsilon/2 ||x||_2^2 + gamma ||x||_1  Nonsparse: Set gamma=0.
 % T = grad g^*, see below for different T
-lambda = 50;   
+lambda = 5;   
 %gamma = 0.1;
 epsilon = 1e-4;    % 0.01
 tau = 0.001;    
@@ -52,7 +52,7 @@ L_gstar = [L_gstar_1, L_gstar_2];
 %L_gstar = mu* max(1/epsilon,1) + 1;
 %T = @(x) T_repsilon_shrinkage(x,epsilon,r_epsilon_factor,shrinkage_par);  % L_gstar = r_epsilon_factor* max(1/epsilon,1) + 1;
 
-writeout = true;
+writeout = false;
 
 savestep = 1; 
 
