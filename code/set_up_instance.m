@@ -538,9 +538,10 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           noiselev_impulsive = 10;
           
           rank = round(min(m,n)/2);
-          sing_values_data.distribution = 'normal';
+          sing_values_data.distribution = 'normalsqr';
           sing_values_data.mu = 0;
           sing_values_data.stddev = 1;
+          
 
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
           rel_cond_A = compute_rel_cond(A,rank);
@@ -846,8 +847,9 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
       if strcmp(sing_values_data.distribution,'uniform')
           sing_values = sing_values_data.sigma_min + ...
                (sing_values_data.sigma_max - sing_values_data.sigma_min) *rand(1,rank);
-      elseif strcmp(sing_values_data.distribution,'normal')
+      elseif strcmp(sing_values_data.distribution,'normalsqr')
           sing_values = sing_values_data.mu + sing_values_data.stddev *randn(1,rank);
+          sing_values = sing_values.^2;
       else
           error('Failed to create system matrix: No matching string!')
       end
