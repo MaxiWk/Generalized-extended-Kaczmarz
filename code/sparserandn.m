@@ -1,11 +1,15 @@
-function x = sparserandn(n,s)
-%function x = sparserandn(n,s)
+function x = sparserandn(n,sp,real_setting)
+
 %  Produces an column vector of length n with s non-zero entries at random
 %  positions and with normally distributed entries (via randn).
-
-% Dirk Lorenz, d.lorenz@tu-braunschweig.de, 18.05.2017
 
 x = zeros(n,1);
 p = randperm(n);
 
-x(p(1:s)) = randn(s,1);
+x(p(1:sp)) = randn(sp,1);
+
+if real_setting
+    x(p(1:sp)) = x(p(1:sp)) + 1i*randn(sp,1);
+end
+
+end
