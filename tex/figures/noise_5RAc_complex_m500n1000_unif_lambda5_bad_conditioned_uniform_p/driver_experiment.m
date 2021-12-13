@@ -1,4 +1,4 @@
-fig_folder_name = 'noise_5RAc_real_m500n1000_unif_lambda5_bad_conditioned_uniform_p';
+fig_folder_name = 'noise_5RAc_real_m1000n500_unif_lambda5_bad_conditioned_uniform_p';
 dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/ExtendedSparseKaczmarz_octave/tex/figures/';
 
 m = 500;  % 500 
