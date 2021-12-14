@@ -1,11 +1,11 @@
-fig_folder_name = 'impulsive_noise_real_m500n200_unif_lambda5_medium_conditioned_larger_noise';
+fig_folder_name = 'impulsive_noise_complex_m500n200_unif_lambda5_medium_conditioned_larger_noise';
 dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/ExtendedSparseKaczmarz_octave/tex/figures/';
 
 m = 500; 
 n = 200; 
 sp = 25; 
 
-real_setting = true; 
+real_setting = false; 
 
 maxiter = 1e7;  
 

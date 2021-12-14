@@ -6,11 +6,11 @@ n = 500;  % 1000
 sp = 25;   % 25
 
 
-num_repeats = 2; 
+num_repeats = 50; 
 
 real_setting = false;
 
-maxiter = 5e5; % Number of iterations % 5e6
+maxiter = 1e6; % Number of iterations % 5e6
 number_data_points = 500;
 iter_save = floor(maxiter/number_data_points);  % each such number of iterations, a data point is added in the error plot
 
