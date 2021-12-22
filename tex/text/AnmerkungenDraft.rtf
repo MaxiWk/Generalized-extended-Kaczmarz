@@ -1,0 +1,66 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2578
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\froman\fcharset0 Times-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red255\green255\blue255;\red0\green0\blue233;
+\red29\green29\blue29;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c100000\c100000\c100000;\cssrgb\c0\c0\c93333;
+\cssrgb\c14902\c14902\c14902;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs30 \cf2 \cb3 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Hi Frank and all,\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb1 \uc0\u8232 \cb3 \
+first I want to apologize for answering a bit late. I have read everything now, I also find it very nice, I also like the introduction, and I have some comments. First to yours:\
+\cb1 \uc0\u8232 \cb3 \
+1) A suggestion: \'84Extended Kaczmarz method - a generalization for solving sparse least-squares and impulsive denoising\'93\
+\cb1 \uc0\u8232 \cb3 \
+2) Maybe we could add that we generalize the method to a block version and to complex variables. In my opinion, there is no need for more changes, but I\'92m not very experienced with writing abstracts.\
+\cb1 \uc0\u8232 \cb3 \
+3) In my opinion, the references are good. Here two possible references for complex soft-shrinkage, maybe not perfect ones yet: \
+\pard\pardeftab720\partightenfactor0
+{\field{\*\fldinst{HYPERLINK "https://doi.org/10.1109/78.827536"}}{\fldrslt \cf4 \ul \ulc4 \strokec4 10.1109/78.827536}}\cf5 \ul \ulc5 \strokec5 \'a0\ulnone (Eq. 8, but only definition)\
+\pard\pardeftab720\partightenfactor0
+\cf2 \strokec2 10.1007/978-3-319-41589-5_10 (\'84grouped shrinkage\'93, but only the concept)\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb1 \uc0\u8232 \cb3 \
+4 Ok.\
+\cb1 \uc0\u8232 \cb3 \
+8 & 10): I agree.\
+\cb1 \uc0\u8232 \cb3 \
+5) The lemma in the probability section is used between (22) and (23) and only there- I would suggest three possibilities, I\'92m fine with each of them: \
+\cb1 \uc0\u8232 \cb3 \
+   - (1) We write something like \'84Taking first conditional expectation w.r.t. i_1,\'85,i_k and j_1,\'85,j_k using Lemma \\ref\{lem:CondTotalExpectation\} and then full expectation,\'93 (Since I have written down the lemma because we couldn\'92t explain the step formally, maybe it\'92s good to give the technical insight for the interested reader.)\
+   - (2) We just leave the step as it is and delete the Lemma and then also the probability section\
+   - (3) We take the formulation from the Zouzias/Freris reference for the REK method from the \'82same\'91 point\'a0  (between p.781/782 in https://epubs.siam.org/doi/pdf/10.1137/120889897): \'84Averaging the above\'a0  inequality over the random variables i_1,j_1,i_2,j_2,\'85,i_\{k*-1\},j_\{k*-1\},\'93- this sounds also instructive.\
+\cb1 \uc0\u8232 \cb3 \
+Of course, technically it is crucial that the i\'92s and j\'92s are mutually independent, but since it\'92s trivial and not addressed in the Zouzias/Freris reference, maybe we should only address it in case (1).\
+\cb1 \uc0\u8232 \cb3 \
+6) Looks nicer than before also to me, thanks for changing.\
+\cb1 \uc0\u8232 \cb3 \
+7) The numerical examples are running fine. The section on the numerics can be read now, or maybe better tomorrow/next week: I will run a new complex example for impulsive noise this evening, but also that is going fine always. It\'92s only that impulsive denoising needs many iterations: I\'92m limiting myself now to 10 instances and this needs 2 hours in total, if I want to run all 4 methods. Performance relies also very much on the condition of the matrix for impulsive denoising (but you already know that). Here I have singular values between 0.001 and 10 and I\'92ve reduced the dimensions back to 500x200 (larger examples like 1000x500 are also possible, but take even a bit more time- should I nevertheless run them?). Between 0.001 and 100 it starts to get very difficult. Between 0.001 and 3 needs less much iterations. What do you think- is that a reasonable compromise? Should I also run a curvelet transform example, as it is motivated like that in the introduction? \
+\cb1 \uc0\u8232 \cb3 \
+8) I agree.\
+\cb1 \uc0\u8232 \cb3 \
+9) I also find it nice with the arbitrary probabilities, good idea with the constants, the numerical examples have now been run with uniform probabilities. \
+\cb1 \uc0\u8232 \cb3 \
+10) I agree.\
+\cb1 \uc0\u8232 \cb3 \
+\cb1 \uc0\u8232 \cb3 \
+\cb1 \uc0\u8232 \cb3 \
+My comments: \
+\cb1 \uc0\u8232 \cb3 \
+- I thought it would be good to have the remarks on the complex method as a remark so that I can refer to it in the numerical examples. I have made a suggestion in the text. What do you think?\
+- Proof of Lemma 3.8: Shouldn\'92t it be sigma_min without the square? I did a proof for myself just to be sure again, you find it attached as a pdf for convenience. Also, I prefer a bit the notation sigma_\{min,+\}, but maybe you\'92re right and it\'92s clear from the context.\
+- In the proof of Theorem 4.2, Step 1: Maybe I\'92m wrong, but to be strict, we don\'92t have Theorem 5.5 in the RSK paper for the block version, right? I thought, maybe one should add something like that the proof is analogous for the block version...\
+- In the proof of Theorem 4.2, Step 3: Definition of q_1 should be c_1/gamma, not c_1*gamma, I think.\
+- There is one comment I always forget to make in our 'plenary' meetings: When we had the more general version of (21), I realized after some time there is a nice interpretation of that: The limit of Sparse Kaczmarz method with an arbitrary initial value is the Bregman-projection of it to the set of solutions- this becomes clear by adding the squared norm of the initial value which is, of course, a constant. I think this is a natural generalization of the result for the Kaczmarz method, which is also new (although maybe not that useful or spectacular). Maybe we should make this a general lemma again, make this comment and use it in the proof? \
+\cb1 \uc0\u8232 \cb3 \
+\cb1 \uc0\u8232 \cb3 \
+\cb1 \uc0\u8232 \cb3 \
+I wish you a nice weekend (or a nice week). Should we schedule a new meeting?\
+\cb1 \uc0\u8232 \cb3 \
+Best, \
+Max\
+}

@@ -1,14 +1,13 @@
-fig_folder_name = 'dummy';
+fig_folder_name = 'impulsive_noise_complex';
 dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/ExtendedSparseKaczmarz_octave/tex/figures/';
 
-m = 500; % DCT matrix: m=2000  % otherwise: 500/200
-n = 200; % DCT matrix: n=1000  % otherwise: 200/500
-sp = 20; 
-%sp = min(5,n); % as before
+m = 500; 
+n = 200; 
+sp = 25; 
 
-real_setting = true; 
+real_setting = false; 
 
-maxiter = 1e6;  
+maxiter = 2e7;  
 
 num_repeats = 10; 
 
@@ -56,8 +55,9 @@ savestep = 1;
 method_array = {'rek','srk','grek_1','grek_2'}; 
 
 %experiment_description = 'impulsive noise, rank deficient, uniform, well conditioned';
-experiment_description = 'impulsive noise, rank deficient, uniform, medium conditioned';
+%experiment_description = 'impulsive noise, rank deficient, uniform, medium conditioned';
 %experiment_description = 'impulsive noise, rank deficient, uniform, bad conditioned';
+experiment_description = 'impulsive noise, rank deficient, uniform, medium conditioned';
 
 median_res = zeros(maxiter,length(method_array));
 

@@ -8,7 +8,7 @@ p = randperm(n);
 
 x(p(1:sp)) = randn(sp,1);
 
-if real_setting
+if ~real_setting
     x(p(1:sp)) = x(p(1:sp)) + 1i*randn(sp,1);
 end
 

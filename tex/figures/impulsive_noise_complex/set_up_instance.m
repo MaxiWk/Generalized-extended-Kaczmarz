@@ -40,7 +40,6 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
        
           noise_factor_rangeA_ortho = 5;
           rank = round(min(m,n)/2);   % must be smaller than m = min(m,n)
-          real_setting = true;
           sing_values_data.distribution = 'uniform';
           sing_values_data.sigma_min = 1e-3; 
           sing_values_data.sigma_max = 100;
@@ -67,14 +66,14 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
   
           % m<=n and least-squares solution shall be not unique (no full rank), finally also add noise to b         
           
-          noise_factor_rangeA_ortho = 1;
+          noise_factor_rangeA_ortho = 5;
           noise_factor_rangeA = 0.1;
           rank = round(min(m,n)/2);   % must be smaller than m = min(m,n)
           
-          real_setting = true;
+          ;
           sing_values_data.distribution = 'uniform';
           sing_values_data.sigma_min = 0.001; 
-          sing_values_data.stddev = 100;
+          sing_values_data.sigma_max = 100;
           
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
           rel_cond_A = compute_rel_cond(A,rank);
@@ -345,7 +344,6 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
       
           noiselev = 0.01;
           rank = round(min(m,n)/2); 
-          real_setting = true;
           sing_values_data.distribution = 'normal';
           sing_values_data.mu = 0; 
           sing_values_data.stddev = 1;
@@ -365,10 +363,9 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
         
      % does not give good results - but also not claimed
     case 'rank deficient, medium uniform noise'
-    
+        
           noiselev = 0.1;
           rank = round(min(m,n)/2);
-          real_setting = true;
           sing_values_data.distribution = 'normal';
           sing_values_data.mu = 0; 
           sing_values_data.stddev = 1;
@@ -384,109 +381,13 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           tol_resATz = 0.5; 
           
           
+          
+          
+          
 
    %%%%%%%%%%%%%%%%%%%%%%%%
    % examples with impulsive noise
-          
-          
-   case  'Franks example, complex_impulsive_noise_and_add_noise'
-          
-          num_comp_noise = ceil(m/40);
-          noiselev_impulsive_noise_factor = 40;
-          noiselev_add_noise_factor = 0.01;
-
-          rank = 300;          
-          real_setting = false;
-          sing_values_data.distribution = 'uniform';
-          sing_values_data.sigma_min = 1; sing_values_data.sigma_max = 2; 
-          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
-
-          xhat_min = 1;
-          xhat_max = 6;
-          xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max, real_setting);
-          
-          b_exact = A*xhat;
-          noiselev = noiselev_impulsive_noise_factor *max(abs(b_exact));
-          
-          b = add_impulsive_noise(b_exact, num_comp_noise);
-          
-          function b = add_impulsive_noise(b, num_comp_noise, noiselev, real_setting)
-              supp_impulsive_noise = randi(m,1,num_comp_noise);
-              sparse_random_vector = noiselev *(rand(length(supp_impulsive_noise),1)-0.5);
-              if ~real_setting
-                  sparse_random_vector = sparse_random_vector + 1i *noiselev *(rand(length(supp_impulsive_noise),1)-0.5);
-              end
-              b(supp_impulsive_noise) = b(supp_impulsive_noise)...
-                                            + noiselev*((rand(length(supp_impulsive_noise),1)-0.5)...
-                                                            +1i*(rand(length(supp_impulsive_noise),1)-0.5));
-
-          end
-          
-          
-          delta = noiselev_add_noise_factor *norm(b_exact);
-          b_add = randn(size(b_exact));
-          b = b + delta *b_add/norm(b_add);
-
-          rel_cond_A = compute_rel_cond(A,rank);
-          
-          tol_resAbz = delta; 
-          tol_resATz = 0.1;
-          
-          
-          
-  case 'impulsive noise, full rank'
-  
-          num_comp_noise = 10;
-          noiselev_impulsive_noise_factor = 0.1;
-
-          A = randn(m,n);                  
-          rel_cond_A = compute_rel_cond(A,min(m,n));
-          xhat = sparserandn(n,sp,real_setting);  % true solution          
-          b_exact = A*xhat;               % exact data
-          
-          num_comp_noise = min(m,num_comp_noise);
-          perm = randperm(m);
-          b = b_exact;
-          
-          noiselev_impulsive = noiselev_impulsive_noise_factor *norm(b);
-          noise = randn(num_comp_noise,1);
-          b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
-          
-          tol_resAbz = noiselev_impulsive_noise_factor *noiselev_impulsive;
-          tol_resATz = 1e-5; 
- 
- 
-          
-  case 'impulsive noise, rank deficient, normalsqr, well conditioned'
-  
-          num_comp_noise = ceil(min(m,n)/20);
-          noiselev_impulsive = 10;
-          
-          rank = round(min(m,n)/2);
-          sing_values_data.distribution = 'normalsqr';
-          sing_values_data.mu = 0;
-          sing_values_data.stddev = 0.5;
-          
-
-          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
-          rel_cond_A = compute_rel_cond(A,rank);
-          xhat = sparserandn(n,sp,real_setting);  % true solution          
-          b_exact = A*xhat;               % exact data
-          
-          num_comp_noise = min(m,num_comp_noise);
-          perm = randperm(m);
-          b = b_exact;
-          
-          noise = randn(num_comp_noise,1);
-          b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
-          
-          tol_resAbz = noiselev_impulsive*1e-6;
-          tol_resATz = noiselev_impulsive*1e-3; 
-
-          
-          
-          
-          
+                  
   case 'impulsive noise, rank deficient, uniform, well conditioned'
   
           num_comp_noise = ceil(min(m,n)/20);
@@ -503,12 +404,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           xhat = sparserandn(n,sp,real_setting);  % true solution          
           b_exact = A*xhat;               % exact data
           
-          num_comp_noise = min(m,num_comp_noise);
-          perm = randperm(m);
-          b = b_exact;
-          
-          noise = randn(num_comp_noise,1);
-          b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
+          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
           
           tol_resAbz = noiselev_impulsive*1e-6;
           tol_resATz = noiselev_impulsive*1e-3; 
@@ -519,7 +415,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
   case 'impulsive noise, rank deficient, uniform, medium conditioned'
   
           num_comp_noise = ceil(min(m,n)/20);
-          noiselev_impulsive = 30;
+          noiselev_impulsive_factor = 2;
           
           rank = round(min(m,n)/2);
           sing_values_data.distribution = 'uniform';
@@ -530,18 +426,15 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
           rel_cond_A = compute_rel_cond(A,rank);
           xhat = sparserandn(n,sp,real_setting);  % true solution          
-          b_exact = A*xhat;               % exact data
+          b_exact = A*xhat;               % exact data          
           
-          num_comp_noise = min(m,num_comp_noise);
-          perm = randperm(m);
-          b = b_exact;
-          
-          noise = randn(num_comp_noise,1);
-          b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* b(perm(1:num_comp_noise)) .*noise/norm(noise); 
-          
+          noiselev_impulsive = noiselev_impulsive_factor *norm(b_exact);
+          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
+                  
           tol_resAbz = noiselev_impulsive*1e-6;
           tol_resATz = noiselev_impulsive*1e-3;           
 
+          
           
           
   case 'impulsive noise, rank deficient, uniform, medium conditioned, noise_factor0.1'
@@ -560,13 +453,8 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           xhat = sparserandn(n,sp,real_setting);  % true solution          
           b_exact = A*xhat;               % exact data
           
-          num_comp_noise = min(m,num_comp_noise);
-          perm = randperm(m);
-          b = b_exact;
-          
-          noise = randn(num_comp_noise,1);
-          b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive_factor * norm(b) * b(perm(1:num_comp_noise)) .*noise/norm(noise); 
-                   
+          noiselev_impulsive = noiselev_impulsive_factor *norm(b_exact);
+          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
 
           
           
@@ -587,12 +475,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           xhat = sparserandn(n,sp,real_setting);  % true solution          
           b_exact = A*xhat;               % exact data
           
-          num_comp_noise = min(m,num_comp_noise);
-          perm = randperm(m);
-          b = b_exact;
-          
-          noise = randn(num_comp_noise,1);
-          b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
+          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
           
           tol_resAbz = noiselev_impulsive*1e-6;
           tol_resATz = noiselev_impulsive*1e-3; 
@@ -600,168 +483,11 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           
     
           
-  case 'impulsive noise, rank-deficient, well conditioned A'
   
-          num_comp_noise = 10;
-          noiselev_impulsive_noise_factor = 0.1;
-          
-          rank = round(min(m,n)/2);
-          sing_values_data.distribution = 'uniform';
-          sing_values_data.sigma_min = 1;
-          sing_values_data.sigma_max = 2;
-
-          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
-          rel_cond_A = compute_rel_cond(A,rank);
-                    
-          xhat = sparserandn(n,sp,real_setting);  % true solution          
-          b_exact = A*xhat;               % exact data
-          
-          num_comp_noise = min(m,num_comp_noise);
-          perm = randperm(m);
-          b = b_exact;
-          
-          noiselev_impulsive = noiselev_impulsive_noise_factor *norm(b);
-          noise = randn(num_comp_noise,1);
-          b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
-          
-          tol_resAbz = noiselev_impulsive_noise_factor*noiselev_impulsive*1e-5;
-          tol_resATz = noiselev_impulsive_noise_factor*noiselev_impulsive*1e-3; 
-          
-          
-          
-          
-    case 'impulsive noise, rank-deficient, A with unif distr sv, well conditioned A and xhat'
-  
-          num_comp_noise = ceil(min(m,n)/20);
-          noiselev_impulsive_noise_factor = 10;
-
-          rank = round(min(m,n)/2);
-          sing_values_data.distribution = 'uniform';
-          sing_values_data.sigma_min = 1;
-          sing_values_data.sigma_max = 2;
-          
-          xhat_min = 0.1;
-          xhat_max = 1;
-
-          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
-          rel_cond_A = compute_rel_cond(A,rank);
-                    
-          xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max, real_setting);        
-          b_exact = A*xhat;               % exact data
-          
-          num_comp_noise = min(m,num_comp_noise);
-          perm = randperm(m);
-          b = b_exact;
-          
-          noiselev_impulsive = noiselev_impulsive_noise_factor *norm(b);
-          noise = randn(num_comp_noise,1);
-          b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
-          
-          tol_resAbz = 1e-4 *noiselev_impulsive;
-          tol_resATz = 1e-5;         
-
-          
-          
-          
-     case 'impulsive noise, rank-deficient, A with unif distr sv, medium-conditioned A'
-  
-          num_comp_noise = min(m,n)/20;
-          noiselev_impulsive_noise_factor = 10;
-
-          rank = round(min(m,n)/2);
-          sing_values_data.distribution = 'uniform';
-          sing_values_data.sigma_min = 0.01;
-          sing_values_data.sigma_max = 1;
-          
-          xhat_min = 0.1;
-          xhat_max = 1;
-
-          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
-          rel_cond_A = compute_rel_cond(A,rank);
-                    
-          xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max, real_setting);        
-          b_exact = A*xhat;               % exact data
-          
-          num_comp_noise = min(m,num_comp_noise);
-          perm = randperm(m);
-          b = b_exact;
-          
-          noiselev_impulsive = noiselev_impulsive_noise_factor *norm(b);
-          noise = randn(num_comp_noise,1);
-          b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
-          
-          tol_resAbz = 1e-3*noiselev_impulsive;
-          tol_resATz = 0.5*1e-4*noiselev_impulsive;  
-          
-          
-
-     case 'impulsive noise, rank-deficient, A with unif distr sv, bad conditioned A'
-  
-          num_comp_noise = min(m,n)/20;
-          noiselev_impulsive_noise_factor = 10;
-
-          rank = round(min(m,n)/2);
-          sing_values_data.distribution = 'uniform';
-          sing_values_data.sigma_min = 0.001;
-          sing_values_data.sigma_max = 1;
-          
-          xhat_min = 0.1;
-          xhat_max = 1;
-
-          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
-          rel_cond_A = compute_rel_cond(A,rank);
-                    
-          xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max, real_setting);        
-          b_exact = A*xhat;               % exact data
-          
-          num_comp_noise = min(m,num_comp_noise);
-          perm = randperm(m);
-          b = b_exact;
-          
-          noiselev_impulsive = noiselev_impulsive_noise_factor *norm(b);
-          noise = randn(num_comp_noise,1);
-          b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
-          
-          tol_resAbz = 1e-3*noiselev_impulsive;
-          tol_resATz = 0.5*1e-4*noiselev_impulsive;  
-
-          
-          
-     case 'less impulsive noise, rank-deficient, A with unif distr sv, bad conditioned A'
-  
-          num_comp_noise = min(m,n)/20;
-          noiselev_impulsive_noise_factor = 2;
-
-          rank = round(min(m,n)/2);
-          sing_values_data.distribution = 'uniform';
-          sing_values_data.sigma_min = 0.001;
-          sing_values_data.sigma_max = 1;
-          
-          xhat_min = 0.1;
-          xhat_max = 1;
-
-          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
-          rel_cond_A = compute_rel_cond(A,rank);
-                    
-          xhat = random_xhat_uniform_from_sp_min_max(sp, xhat_min, xhat_max, real_setting);        
-          b_exact = A*xhat;               % exact data
-          
-          num_comp_noise = min(m,num_comp_noise);
-          perm = randperm(m);
-          b = b_exact;
-          
-          noiselev_impulsive = noiselev_impulsive_noise_factor *norm(b);
-          noise = randn(num_comp_noise,1);
-          b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise); 
-          
-          tol_resAbz = 1e-3*noiselev_impulsive;
-          tol_resATz = 0.5*1e-4*noiselev_impulsive; 
-          
-
    case 'impulsive noise and 10% additional noise, rank-deficient, bad conditioned A and xhat'
   
           num_comp_noise = 10;
-          noiselev_impulsive_noise_factor = 10;
+          noiselev_impulsive_factor = 10;
           noiselev_add_noise_factor = 0.1;
 
           rank = round(min(m,n)/2);
@@ -775,32 +501,28 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           xhat = sparserandn(n,sp,real_setting);  % true solution          
           b_exact = A*xhat;          % exact data
           
-          num_comp_noise = min(m,num_comp_noise);
-          perm = randperm(m);
-          b = b_exact;
-          
-          noiselev_impulsive = noiselev_impulsive_noise_factor*norm(b);
-          noise = randn(num_comp_noise,1);
-          b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise);
+          noiselev_impulsive = noiselev_impulsive_factor *norm(b_exact);
+          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
           
           add_noise = randn(size(b));
           b = b + noiselev_add_noise_factor * add_noise/norm(add_noise) * norm(b);
           
-          tol_resAbz = 1e-5*noiselev_impulsive_noise_factor *noiselev_impulsive;
-          tol_resATz = 1e-4*noiselev_impulsive_noise_factor *noiselev_impulsive;              
+          tol_resAbz = 1e-5*noiselev_impulsive_factor *noiselev_impulsive;
+          tol_resATz = 1e-4*noiselev_impulsive_factor *noiselev_impulsive;              
  
+          
           
           
      case 'impulsive noise and 1% additional noise, rank-deficient, bad conditioned A and xhat'
   
           num_comp_noise = 10;
-          noiselev_impulsive_noise_factor = 10;
-          noiselev_add_noise_factor = 0.01;
+          noiselev_impulsive_factor = 10;
+          noiselev_add_noise_factor = 0.1;
 
           rank = round(min(m,n)/2);
           sing_values_data.distribution = 'uniform';
           sing_values_data.sigma_min = 0.001;
-          sing_values_data.sigma_max = 1;
+          sing_values_data.sigma_max = 100;
 
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
           rel_cond_A = compute_rel_cond(A,rank);
@@ -808,22 +530,17 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           xhat = sparserandn(n,sp,real_setting);  % true solution          
           b_exact = A*xhat;          % exact data
           
-          num_comp_noise = min(m,num_comp_noise);
-          perm = randperm(m);
-          b = b_exact;
-          
-          noiselev_impulsive = noiselev_impulsive_noise_factor*norm(b);
-          noise = randn(num_comp_noise,1);
-          b(perm(1:num_comp_noise)) = b(perm(1:num_comp_noise)) + noiselev_impulsive* noise / norm(noise);
+          noiselev_impulsive = noiselev_impulsive_factor *norm(b_exact);
+          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
           
           add_noise = randn(size(b));
           b = b + noiselev_add_noise_factor * add_noise/norm(add_noise) * norm(b);
           
-          tol_resAbz = 1e-5*noiselev_impulsive_noise_factor *noiselev_impulsive;
-          tol_resATz = 1e-7*noiselev_impulsive_noise_factor *noiselev_impulsive;              
- 
+          tol_resAbz = 1e-5*noiselev_impulsive_factor *noiselev_impulsive;
+          tol_resATz = 1e-4*noiselev_impulsive_factor *noiselev_impulsive;   
           
 
+          
     
      case 'impulsive noise Franks example' % m=800, n=600, rank=600
          
@@ -915,13 +632,29 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
   end
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  function b_noisy = add_noise_in_RAc(b,A,noiselev)
+
+  function b = add_noise_in_RAc(b,A,noiselev)
       ONB_A_adj = null(A');            
       noise_coeff = randn(size(ONB_A_adj,2),1);
       noise_in_RAc = ONB_A_adj*noise_coeff; 
       noise_in_RAc = noiselev *noise_in_RAc /norm(noise_in_RAc);
-      b_noisy = b + noise_in_RAc;  
+      b = b + noise_in_RAc;  
+  end
+
+
+  function b = add_impulsive_noise(b, num_comp_noise, noiselev, real_setting)
+          
+      supp_impulsive_noise = randi(m,1,num_comp_noise);
+      sparse_random_vector = noiselev *(rand(length(supp_impulsive_noise),1)-0.5);
+
+      if ~real_setting
+          sparse_random_vector = sparse_random_vector + 1i *noiselev *(rand(length(supp_impulsive_noise),1)-0.5);
+      end
+
+      b(supp_impulsive_noise) = b(supp_impulsive_noise) + sparse_random_vector;
+
   end
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

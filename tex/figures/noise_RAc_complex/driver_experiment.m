@@ -34,9 +34,6 @@ savestep = 1;
 
 method_array = {'rek', 'srk', 'grek_1'}; 
 
-%experiment_description = 'rank-deficient, medium noise in R(A) complement';
-% noise0.5_rangeAc
-
 experiment_description = 'rank-deficient, large noise in R(A) complement';
 %noise5_rangeAc
 

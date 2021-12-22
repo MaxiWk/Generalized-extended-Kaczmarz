@@ -1,4 +1,4 @@
-fig_folder_name = 'impulsive_noise_complex_4e7iter';
+fig_folder_name = 'impulsive_noise_complex';
 dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/ExtendedSparseKaczmarz_octave/tex/figures/';
 
 m = 500; 
@@ -22,7 +22,7 @@ colsamp = 'uniform';
 
 % f(x) = epsilon/2 ||x||_2^2 + gamma ||x||_1  Nonsparse: Set gamma=0.
 % T = grad g^*, see below for different T
-lambda = 5;   
+lambda = 10;   
 %gamma = 0.1;
 epsilon = 1e-4;    % 0.01
 tau = 0.001;    
