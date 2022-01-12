@@ -16,7 +16,7 @@ function medianplot_array = plot_minmax_median_quantiles(lineStyle,mins,maxs,med
             quantcolor_i = quantcolor_dict(method_array{i});
             h = fill([num_iter_array  fliplr(num_iter_array)], [log10(quant75s(:,i)')  fliplr(log10(quant25s(:,i))')], quantcolor_i,'EdgeColor', 'none');
             set(h,'facealpha', .5)
-            medianplot_array(i) = plot( num_iter_array,log10(medians(:,i)),linecolor_dict(method_array{i}),'LineWidth',2,...
+            medianplot_array(i) = semilogy( num_iter_array,log10(medians(:,i)),linecolor_dict(method_array{i}),'LineWidth',2,...
                        'DisplayName',displayname_dict(method_array{i}), 'LineStyle', lineStyle );
             ylabel('(log scale)')
           else 

@@ -1,14 +1,14 @@
-fig_folder_name = 'noise_RAc_complex';
+fig_folder_name = 'dummy';
 dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/ExtendedSparseKaczmarz_octave/tex/figures/';
 
-m = 1000;  % 500 
-n = 500;  % 1000
+m = 500;  % 500 
+n = 200;  % 1000
 sp = 25;   % 25
 
 
-num_repeats = 50; 
+num_repeats = 5; 
 
-real_setting = false;
+real_setting = true;
 
 maxiter = 5e5; % Number of iterations % 5e6
 number_data_points = 500;
@@ -41,6 +41,10 @@ experiment_description = 'rank-deficient, large noise in R(A) complement';
 %noise5_rangeAc
 
 %experiment_description = 'rank deficient, noise split into R(A) and R(A) complement';
+
+%experiment_description = 'rank deficient, noise split into R(A) and R(A) complement 2';
+
+%experiment_description = 'rank deficient, noise split into R(A) and R(A) complement 3';
 
 %experiment_description = 'rank deficient, only noise in R(A) complement, well conditioned A'; % maxiter = 2*1e5
 % with sigma_max = 2, sigma_min = 1 -> very fast with sigma_max = 100,

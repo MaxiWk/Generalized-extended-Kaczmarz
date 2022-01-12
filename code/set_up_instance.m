@@ -66,11 +66,10 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
   
           % m<=n and least-squares solution shall be not unique (no full rank), finally also add noise to b         
           
-          noise_factor_rangeA_ortho = 5;
-          noise_factor_rangeA = 0.1;
+          noise_factor_rangeA_ortho = 1;
+          noise_factor_rangeA = 0.01;
           rank = round(min(m,n)/2);   % must be smaller than m = min(m,n)
           
-          ;
           sing_values_data.distribution = 'uniform';
           sing_values_data.sigma_min = 0.001; 
           sing_values_data.sigma_max = 100;
@@ -93,6 +92,109 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
 
           tol_resAbz = noiselev_rangeA;  % 1e-3
           tol_resATz = noiselev_rangeA;  % 1e-(6.5)
+
+        
+          
+          
+      case  'rank deficient, noise split into R(A) and R(A) complement 2'
+  
+          % m<=n and least-squares solution shall be not unique (no full rank), finally also add noise to b         
+          
+          noise_factor_rangeA_ortho = 1;
+          noise_factor_rangeA = 0.1;
+          rank = round(min(m,n)/2);   % must be smaller than m = min(m,n)
+          
+          sing_values_data.distribution = 'uniform';
+          sing_values_data.sigma_min = 0.001; 
+          sing_values_data.sigma_max = 100;
+          
+          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
+                  
+          xhat = sparserandn(n,sp,real_setting);  % true solution          
+          b_exact = A*xhat;               % exact data
+
+          % add noise in R(A)c to b
+          noiselev_rangeA_ortho = noise_factor_rangeA_ortho *norm(b_exact);
+          b = add_noise_in_RAc(b_exact,A,noiselev_rangeA_ortho);
+          
+          % add noise in R(A) to b
+          noiselev_rangeA = noise_factor_rangeA *norm(b_exact);
+          noise_rangeA = A* randn(n,1);
+          noise_rangeA = noiselev_rangeA/ norm(noise_rangeA) *noise_rangeA;
+          b = b + noise_rangeA;      
+
+          tol_resAbz = noiselev_rangeA;  % 1e-3
+          tol_resATz = noiselev_rangeA;  % 1e-(6.5)          
+  
+          
+          
+          
+        case  'rank deficient, noise split into R(A) and R(A) complement 3'
+  
+          % m<=n and least-squares solution shall be not unique (no full rank), finally also add noise to b         
+          
+          noise_factor_rangeA_ortho = 1;
+          noise_factor_rangeA = 1;
+          rank = round(min(m,n)/2);   % must be smaller than m = min(m,n)
+          
+          sing_values_data.distribution = 'uniform';
+          sing_values_data.sigma_min = 0.001; 
+          sing_values_data.sigma_max = 100;
+          
+          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
+                  
+          xhat = sparserandn(n,sp,real_setting);  % true solution          
+          b_exact = A*xhat;               % exact data
+
+          % add noise in R(A)c to b
+          noiselev_rangeA_ortho = noise_factor_rangeA_ortho *norm(b_exact);
+          b = add_noise_in_RAc(b_exact,A,noiselev_rangeA_ortho);
+          
+          % add noise in R(A) to b
+          noiselev_rangeA = noise_factor_rangeA *norm(b_exact);
+          noise_rangeA = A* randn(n,1);
+          noise_rangeA = noiselev_rangeA/ norm(noise_rangeA) *noise_rangeA;
+          b = b + noise_rangeA;      
+
+          tol_resAbz = noiselev_rangeA;  % 1e-3
+          tol_resATz = noiselev_rangeA;  % 1e-(6.5)          
+
+          
+          
+          
+      case  'rank deficient, noise split into R(A) and R(A) complement'
+  
+          % m<=n and least-squares solution shall be not unique (no full rank), finally also add noise to b         
+          
+          noise_factor_rangeA_ortho = 1;
+          noise_factor_rangeA = 0.01;
+          rank = round(min(m,n)/2);   % must be smaller than m = min(m,n)
+          
+          sing_values_data.distribution = 'uniform';
+          sing_values_data.sigma_min = 0.001; 
+          sing_values_data.sigma_max = 100;
+          
+          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
+                  
+          xhat = sparserandn(n,sp,real_setting);  % true solution          
+          b_exact = A*xhat;               % exact data
+
+          % add noise in R(A)c to b
+          noiselev_rangeA_ortho = noise_factor_rangeA_ortho *norm(b_exact);
+          b = add_noise_in_RAc(b_exact,A,noiselev_rangeA_ortho);
+          
+          % add noise in R(A) to b
+          noiselev_rangeA = noise_factor_rangeA *norm(b_exact);
+          noise_rangeA = A* randn(n,1);
+          noise_rangeA = noiselev_rangeA/ norm(noise_rangeA) *noise_rangeA;
+          b = b + noise_rangeA;      
+
+          tol_resAbz = noiselev_rangeA;  % 1e-3
+          tol_resATz = noiselev_rangeA;  % 1e-(6.5)
+
           
           
           

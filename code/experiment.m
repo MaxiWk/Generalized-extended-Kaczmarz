@@ -840,6 +840,8 @@ end  % end for loop over repeats
     %% generate & save subplot for paper (if writeout) 
 
     if writeout
+        
+        figure
   
         % ||Ax-\hat b||
         sgtitle(sprintf('Errors, m = %d, n = %d, s = %d, repeats = %d',m,n,sp,num_repeats));

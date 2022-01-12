@@ -1,5 +1,5 @@
 function medianplot_array = plot_stopped_quantity(quantity,iterstop_list,choose_logy,method_array,method_counter,iter_save,maxiter,linecolor_dict,displayname_dict)
-      
+
       medianplot_array = zeros(1, length(method_array));  % for legend
       num_iter_array = 1:iter_save:maxiter;
       num_methods = length(method_array);
