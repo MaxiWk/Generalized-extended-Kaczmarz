@@ -138,6 +138,7 @@ for repeats = 1:num_repeats
     
     norma = sum(abs(A).^2,2);      % squared norms of rows of A
     norma_col = sum(abs(A).^2,1);  % squared norms of cols of A
+    norm_b = norm(b);
     norm_b_exact = norm(b_exact);
     
     
@@ -193,6 +194,15 @@ for repeats = 1:num_repeats
         % tmp end
         xdual = zeros(n,1);  
         zdual = b;
+        
+        switch method 
+            case 'gerk_1'
+                z = T_1(zdual);
+            case 'gerk_2'
+                z = T_2(zdual);
+            otherwise 
+                z = zdual;
+        end
         z = T_1(zdual);
         
         
@@ -266,9 +276,9 @@ for repeats = 1:num_repeats
                 res(iter_save_counter, repeats, method_counter) = norm(A*x-b_exact)/norm_b_exact;
                 %lsres(iter_save_counter, repeats, method_counter) = norm(A'*(A*x-A*xhat))/norm_b_exact;
                 %res_proj(iter_save_counter, repeats, method_counter) = norm(A*x - proj_b)/norm_b_exact;
-                lsres(iter_save_counter, repeats, method_counter) = norm(A.'*(A*x-b_exact))/norm_b_exact;
+                lsres(iter_save_counter, repeats, method_counter) = norm(A'*(A*x-b))/norm_b;
                 %lsres_proj(iter_save_counter, repeats, method_counter) = norm(A'*(A*x - proj_b))/norm_ATb;
-                grad_zfunctional(iter_save_counter, repeats, method_counter) = norm(A.'*T_1(b_exact-A*x))/norm_b_exact;
+                grad_zfunctional(iter_save_counter, repeats, method_counter) = norm(A'*T_2(b-A*x))/norm_b;
                 %err_to_moorepi(iter_save_counter, repeats, method_counter) = norm(x-xmoorepi)/norm(xmoorepi);
                 err_to_sparse(iter_save_counter, repeats, method_counter) = norm(x-xhat)/norm(xhat);
                 resAbz_list(iter_save_counter, repeats, method_counter) = norm(A*x-b+zdual)/norm_b_exact;
@@ -485,12 +495,14 @@ end  % end for loop over repeats
     if ~writeout
 
         %% plot errors
+        
+        % \|Ax- b_exact\| / \|b_{exact}\| 
 
         figure
 
         sgtitle(sprintf('Errors, m = %d, n = %d, s = %d, repeats = %d',m,n,sp,num_repeats));
 
-        subplot(1,3,1)
+        subplot(1,4,1)
 
         hold on
 
@@ -508,21 +520,45 @@ end  % end for loop over repeats
 
 
 
+        % \|A^T(b-Ax)\|/\|b\|
 
+        subplot(1,4,2)
 
-        subplot(1,3,2)
+        hold on
+
+        choose_logy = true;
+
+        plot_minmax_median_quantiles('-',min_lsres,max_lsres,median_lsres,...
+                quant25_lsres,quant75_lsres,choose_logy, ...
+                method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
+                linecolor_dict,displayname_dict);
+
+        xlabel('$k$','Interpreter','latex')
+        ylabel('$$\|A^T(b-Ax)\|/\|b\|$$','Interpreter','latex')
+
+        % remove legend
+        leg = legend('figure()');
+        set(leg,'visible','off')
+
+        hold off
+
+        
+        
+        % \|A^T \nabla g^*(b-Ax)\|/\|b\|
+        
+        subplot(1,4,3)
 
         hold on
 
         choose_logy = true;
 
         plot_minmax_median_quantiles('-',min_grad_zfunctional,max_grad_zfunctional,median_grad_zfunctional,...
-                                                        quant25_grad_zfunctional,quant75_grad_zfunctional,choose_logy, ...
-                                                        method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
-                                                        linecolor_dict,displayname_dict);
+                quant25_grad_zfunctional,quant75_grad_zfunctional,choose_logy, ...
+                method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
+                linecolor_dict,displayname_dict);
 
         xlabel('$k$','Interpreter','latex')
-        ylabel('$$\|\nabla_x g^*(\hat b-Ax)\|/\|\hat b\|$$','Interpreter','latex')
+        ylabel('$$\|A^T \nabla g^*(b-Ax)\|/\|b\|$$','Interpreter','latex')
 
         % remove legend
         leg = legend('figure()');
@@ -532,57 +568,9 @@ end  % end for loop over repeats
 
 
 
+        % \|x-\hat x\|/\|\hat x\|
 
-
-
-
-
-
-        %% plot results for 'residuals' with P_{R(A)}(b) instead of b
-        %{
-        subplot(2,3,2)
-
-        hold on
-
-        choose_logy = true;
-
-        medianplot_array = plot_minmax_median_quantiles('-',min_res_proj,max_res_proj,median_res_proj,quant25_res_proj,quant75_res_proj, choose_logy, method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
-
-        hold off
-
-        title('Proj. Residuals')
-        %}
-
-
-
-
-
-        %% Plot results for least squares residuals
-    %{
-
-        subplot(2,2,3)
-
-        hold on 
-
-        choose_logy = true;
-
-        medianplot_array = plot_minmax_median_quantiles('-',min_lsres,max_lsres,median_lsres,quant25_lsres,quant75_lsres,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
-
-        %legend(medianplot_array, 'location', 'southwest');
-
-        hold off
-
-        title('Gradient of least squares function')
-    %}
-
-
-
-
-
-        %% Plot results for distance to the sparse solution (sol of reg BP problem)
-
-
-        subplot(1,3,3)
+        subplot(1,4,4)
 
         hold on 
 
@@ -843,9 +831,9 @@ end  % end for loop over repeats
         
         figure
   
-        % ||Ax-\hat b||
+        % ||Ax- b_{exact}|| / ||b_{exact}|| 
         sgtitle(sprintf('Errors, m = %d, n = %d, s = %d, repeats = %d',m,n,sp,num_repeats));
-        subplot(1,3,1)
+        subplot(1,4,1)
         choose_logy = true;
         plot_array = plot_minmax_median_quantiles('-',min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
         leg = legend(plot_array, 'location', 'southwest');
@@ -855,11 +843,29 @@ end  % end for loop over repeats
 
         xlabel('$k$','Interpreter','latex')
         ylabel('$$\|Ax-\hat b\|/\|\hat b\|$$','Interpreter','latex')
+
+        
+        
+
+        % ||A^T\nabla g^*(\hat b-Ax)||
+        subplot(1,4,2)
+        choose_logy = true;
+        plot_minmax_median_quantiles('-',min_lsres,max_lsres,median_lsres,...
+                                                        quant25_lsres,quant75_lsres,choose_logy, ...
+                                                        method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
+                                                        linecolor_dict,displayname_dict);
+        xlabel('$k$','Interpreter','latex')
+        ylabel('$$\|A^T(b-Ax)\|/\|b\|$$','Interpreter','latex')
+
+        % remove legend
+        leg = legend('figure()');
+        set(leg,'visible','off')
+        
         
 
 
         % ||A^T\nabla g^*(\hat b-Ax)||
-        subplot(1,3,2)
+        subplot(1,4,3)
         choose_logy = true;
         plot_minmax_median_quantiles('-',min_grad_zfunctional,max_grad_zfunctional,median_grad_zfunctional,...
                                                         quant25_grad_zfunctional,quant75_grad_zfunctional,choose_logy, ...
@@ -875,7 +881,7 @@ end  % end for loop over repeats
 
 
         % || x-\hat x||   
-        subplot(1,3,3)
+        subplot(1,4,4)
         choose_logy = true;
         plot_minmax_median_quantiles('-',min_err_to_sparse,max_err_to_sparse,median_err_to_sparse,...
                                                         quant25_err_to_sparse,quant75_err_to_sparse, choose_logy,...
@@ -902,7 +908,7 @@ end  % end for loop over repeats
         
         figure
         
-        % b_exact vs. b       
+        % b_{exact} vs. b       
 
         subplot(1,5,1)
 
