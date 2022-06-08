@@ -506,7 +506,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           xhat = sparserandn(n,sp,real_setting);  % true solution          
           b_exact = A*xhat;               % exact data
           
-          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
+          b = add_randn_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
           
           tol_resAbz = noiselev_impulsive*1e-6;
           tol_resATz = noiselev_impulsive*1e-3; 
@@ -531,7 +531,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           b_exact = A*xhat;               % exact data          
           
           noiselev_impulsive = noiselev_impulsive_factor *norm(b_exact);
-          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
+          b = add_randn_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
                   
           tol_resAbz = noiselev_impulsive*1e-6;
           tol_resATz = noiselev_impulsive*1e-3;           
@@ -556,7 +556,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           b_exact = A*xhat;               % exact data
           
           noiselev_impulsive = noiselev_impulsive_factor *norm(b_exact);
-          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
+          b = add_randn_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
 
           
           
@@ -577,7 +577,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           xhat = sparserandn(n,sp,real_setting);  % true solution          
           b_exact = A*xhat;               % exact data
           
-          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
+          b = add_randn_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
           
           tol_resAbz = noiselev_impulsive*1e-6;
           tol_resATz = noiselev_impulsive*1e-3; 
@@ -604,7 +604,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           b_exact = A*xhat;          % exact data
           
           noiselev_impulsive = noiselev_impulsive_factor *norm(b_exact);
-          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
+          b = add_randn_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
           
           add_noise = randn(size(b));
           b = b + noiselev_add_noise_factor * add_noise/norm(add_noise) * norm(b);
@@ -633,7 +633,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           b_exact = A*xhat;          % exact data
           
           noiselev_impulsive = noiselev_impulsive_factor *norm(b_exact);
-          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
+          b = add_randn_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
           
           add_noise = randn(size(b));
           b = b + noiselev_add_noise_factor * add_noise/norm(add_noise) * norm(b);
@@ -746,9 +746,23 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
   end
 
 
-  function b = add_impulsive_noise(b, num_comp_noise, noiselev, real_setting)
+  function b = add_fixed_impulsive_noise(b, num_comp_noise, noiselev, real_setting)
           
-      supp_impulsive_noise = randi(m,1,num_comp_noise);
+      supp_impulsive_noise = randsample(m,num_comp_noise);
+      sparse_random_vector = noiselev *(rand(length(supp_impulsive_noise),1)-0.5);
+
+      if ~real_setting
+          sparse_random_vector = sparse_random_vector + 1i *noiselev *(rand(length(supp_impulsive_noise),1)-0.5);
+      end
+
+      b(supp_impulsive_noise) = b(supp_impulsive_noise) + sparse_random_vector;
+
+  end
+
+
+  function b = add_randn_impulsive_noise(b, num_comp_noise, noiselev, real_setting)
+          
+      supp_impulsive_noise = randsample(m,num_comp_noise);
       sparse_random_vector = noiselev *(rand(length(supp_impulsive_noise),1)-0.5);
 
       if ~real_setting
