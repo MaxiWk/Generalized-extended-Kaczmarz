@@ -1,15 +1,15 @@
-fig_folder_name = 'impulsive_noise_complex_4e7iter';
-dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/ExtendedSparseKaczmarz_octave/tex/figures/';
+fig_folder_name = 'impulsive_noise_complex';
+dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/LeastSquares/tex/figures/';
 
-m = 50; 
-n = 20; 
-sp = 2; 
+m = 500; 
+n = 200; 
+sp = 25; 
 
-real_setting = true; 
+real_setting = false; 
 
 maxiter = 2e7;  
 
-num_repeats = 2; 
+num_repeats = 10; 
 
 writeout = true;
 
