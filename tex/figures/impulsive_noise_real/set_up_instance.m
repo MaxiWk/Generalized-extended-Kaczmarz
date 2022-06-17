@@ -66,11 +66,10 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
   
           % m<=n and least-squares solution shall be not unique (no full rank), finally also add noise to b         
           
-          noise_factor_rangeA_ortho = 5;
-          noise_factor_rangeA = 0.1;
+          noise_factor_rangeA_ortho = 1;
+          noise_factor_rangeA = 0.01;
           rank = round(min(m,n)/2);   % must be smaller than m = min(m,n)
           
-          ;
           sing_values_data.distribution = 'uniform';
           sing_values_data.sigma_min = 0.001; 
           sing_values_data.sigma_max = 100;
@@ -93,6 +92,109 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
 
           tol_resAbz = noiselev_rangeA;  % 1e-3
           tol_resATz = noiselev_rangeA;  % 1e-(6.5)
+
+        
+          
+          
+      case  'rank deficient, noise split into R(A) and R(A) complement 2'
+  
+          % m<=n and least-squares solution shall be not unique (no full rank), finally also add noise to b         
+          
+          noise_factor_rangeA_ortho = 1;
+          noise_factor_rangeA = 0.1;
+          rank = round(min(m,n)/2);   % must be smaller than m = min(m,n)
+          
+          sing_values_data.distribution = 'uniform';
+          sing_values_data.sigma_min = 0.001; 
+          sing_values_data.sigma_max = 100;
+          
+          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
+                  
+          xhat = sparserandn(n,sp,real_setting);  % true solution          
+          b_exact = A*xhat;               % exact data
+
+          % add noise in R(A)c to b
+          noiselev_rangeA_ortho = noise_factor_rangeA_ortho *norm(b_exact);
+          b = add_noise_in_RAc(b_exact,A,noiselev_rangeA_ortho);
+          
+          % add noise in R(A) to b
+          noiselev_rangeA = noise_factor_rangeA *norm(b_exact);
+          noise_rangeA = A* randn(n,1);
+          noise_rangeA = noiselev_rangeA/ norm(noise_rangeA) *noise_rangeA;
+          b = b + noise_rangeA;      
+
+          tol_resAbz = noiselev_rangeA;  % 1e-3
+          tol_resATz = noiselev_rangeA;  % 1e-(6.5)          
+  
+          
+          
+          
+        case  'rank deficient, noise split into R(A) and R(A) complement 3'
+  
+          % m<=n and least-squares solution shall be not unique (no full rank), finally also add noise to b         
+          
+          noise_factor_rangeA_ortho = 1;
+          noise_factor_rangeA = 1;
+          rank = round(min(m,n)/2);   % must be smaller than m = min(m,n)
+          
+          sing_values_data.distribution = 'uniform';
+          sing_values_data.sigma_min = 0.001; 
+          sing_values_data.sigma_max = 100;
+          
+          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
+                  
+          xhat = sparserandn(n,sp,real_setting);  % true solution          
+          b_exact = A*xhat;               % exact data
+
+          % add noise in R(A)c to b
+          noiselev_rangeA_ortho = noise_factor_rangeA_ortho *norm(b_exact);
+          b = add_noise_in_RAc(b_exact,A,noiselev_rangeA_ortho);
+          
+          % add noise in R(A) to b
+          noiselev_rangeA = noise_factor_rangeA *norm(b_exact);
+          noise_rangeA = A* randn(n,1);
+          noise_rangeA = noiselev_rangeA/ norm(noise_rangeA) *noise_rangeA;
+          b = b + noise_rangeA;      
+
+          tol_resAbz = noiselev_rangeA;  % 1e-3
+          tol_resATz = noiselev_rangeA;  % 1e-(6.5)          
+
+          
+          
+          
+      case  'rank deficient, noise split into R(A) and R(A) complement'
+  
+          % m<=n and least-squares solution shall be not unique (no full rank), finally also add noise to b         
+          
+          noise_factor_rangeA_ortho = 1;
+          noise_factor_rangeA = 0.01;
+          rank = round(min(m,n)/2);   % must be smaller than m = min(m,n)
+          
+          sing_values_data.distribution = 'uniform';
+          sing_values_data.sigma_min = 0.001; 
+          sing_values_data.sigma_max = 100;
+          
+          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
+                  
+          xhat = sparserandn(n,sp,real_setting);  % true solution          
+          b_exact = A*xhat;               % exact data
+
+          % add noise in R(A)c to b
+          noiselev_rangeA_ortho = noise_factor_rangeA_ortho *norm(b_exact);
+          b = add_noise_in_RAc(b_exact,A,noiselev_rangeA_ortho);
+          
+          % add noise in R(A) to b
+          noiselev_rangeA = noise_factor_rangeA *norm(b_exact);
+          noise_rangeA = A* randn(n,1);
+          noise_rangeA = noiselev_rangeA/ norm(noise_rangeA) *noise_rangeA;
+          b = b + noise_rangeA;      
+
+          tol_resAbz = noiselev_rangeA;  % 1e-3
+          tol_resATz = noiselev_rangeA;  % 1e-(6.5)
+
           
           
           
@@ -404,7 +506,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           xhat = sparserandn(n,sp,real_setting);  % true solution          
           b_exact = A*xhat;               % exact data
           
-          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
+          b = add_randn_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
           
           tol_resAbz = noiselev_impulsive*1e-6;
           tol_resATz = noiselev_impulsive*1e-3; 
@@ -429,18 +531,18 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           b_exact = A*xhat;               % exact data          
           
           noiselev_impulsive = noiselev_impulsive_factor *norm(b_exact);
-          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
+          b = add_randn_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
                   
           tol_resAbz = noiselev_impulsive*1e-6;
           tol_resATz = noiselev_impulsive*1e-3;           
 
           
           
-          
-  case 'impulsive noise, rank deficient, uniform, medium conditioned, noise_factor0.1'
+
+  case 'impulsive noise, rank deficient, uniform, medium conditioned'
   
           num_comp_noise = ceil(min(m,n)/20);
-          noiselev_impulsive_factor = 0.1;
+          noiselev_impulsive_factor = 2;
           
           rank = round(min(m,n)/2);
           sing_values_data.distribution = 'uniform';
@@ -451,10 +553,41 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
           rel_cond_A = compute_rel_cond(A,rank);
           xhat = sparserandn(n,sp,real_setting);  % true solution          
-          b_exact = A*xhat;               % exact data
+          b_exact = A*xhat;               % exact data          
           
           noiselev_impulsive = noiselev_impulsive_factor *norm(b_exact);
-          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
+          b = add_randn_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
+                  
+          tol_resAbz = noiselev_impulsive*1e-6;
+          tol_resATz = noiselev_impulsive*1e-3;               
+          
+          
+          
+  
+          
+  case 'fixed impulsive noise, rank deficient, uniform, medium conditioned'
+  
+          num_comp_noise = ceil(min(m,n)/20);
+          noiselev_impulsive_factor = 2;
+          
+          rank = round(min(m,n)/2);
+          sing_values_data.distribution = 'uniform';
+          sing_values_data.sigma_min = 1e-3;
+          sing_values_data.sigma_max = 10;
+          
+
+          A = random_rank_deficient_matrix_with_condition(m,n,rank,real_setting,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
+          xhat = sparserandn(n,sp,real_setting);  % true solution          
+          b_exact = A*xhat;               % exact data          
+          
+          noiselev_impulsive = noiselev_impulsive_factor *max(abs(b_exact));
+          b = add_fixed_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
+                  
+          tol_resAbz = noiselev_impulsive*1e-6;
+          tol_resATz = noiselev_impulsive*1e-3; 
+          
+
 
           
           
@@ -475,7 +608,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           xhat = sparserandn(n,sp,real_setting);  % true solution          
           b_exact = A*xhat;               % exact data
           
-          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
+          b = add_randn_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
           
           tol_resAbz = noiselev_impulsive*1e-6;
           tol_resATz = noiselev_impulsive*1e-3; 
@@ -502,7 +635,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           b_exact = A*xhat;          % exact data
           
           noiselev_impulsive = noiselev_impulsive_factor *norm(b_exact);
-          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
+          b = add_randn_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
           
           add_noise = randn(size(b));
           b = b + noiselev_add_noise_factor * add_noise/norm(add_noise) * norm(b);
@@ -531,7 +664,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           b_exact = A*xhat;          % exact data
           
           noiselev_impulsive = noiselev_impulsive_factor *norm(b_exact);
-          b = add_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
+          b = add_randn_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real_setting);
           
           add_noise = randn(size(b));
           b = b + noiselev_add_noise_factor * add_noise/norm(add_noise) * norm(b);
@@ -644,9 +777,22 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
   end
 
 
-  function b = add_impulsive_noise(b, num_comp_noise, noiselev, real_setting)
+  function b = add_fixed_impulsive_noise(b, num_comp_noise, noiselev, real_setting)
           
-      supp_impulsive_noise = randi(m,1,num_comp_noise);
+      supp_impulsive_noise = randsample(m,num_comp_noise);
+
+      if real_setting
+          b(supp_impulsive_noise) = b(supp_impulsive_noise) + noiselev;
+      else
+          b(supp_impulsive_noise) = b(supp_impulsive_noise) + (1+1i) * sqrt(0.5*noiselev);
+      end
+
+  end
+
+
+  function b = add_randn_impulsive_noise(b, num_comp_noise, noiselev, real_setting)
+          
+      supp_impulsive_noise = randsample(m,num_comp_noise);
       sparse_random_vector = noiselev *(rand(length(supp_impulsive_noise),1)-0.5);
 
       if ~real_setting
@@ -656,9 +802,6 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
       b(supp_impulsive_noise) = b(supp_impulsive_noise) + sparse_random_vector;
 
   end
-
-
-  
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   

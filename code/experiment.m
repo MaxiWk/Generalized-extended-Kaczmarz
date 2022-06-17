@@ -593,6 +593,10 @@ end  % end for loop over repeats
         hold off                                                
 
 
+        
+        [ha, pos] = tight_subplot(1,4,[.01 .03],[.1 .01],[.01 .01]);
+        for ii = 1:6; axes(ha(ii)); plot(randn(10,ii)); end
+        set(ha(1:4),'XTickLabel',''); set(ha,'YTickLabel','')
 
 
 
@@ -847,7 +851,7 @@ end  % end for loop over repeats
         
         
 
-        % ||A^T\nabla g^*(\hat b-Ax)||
+        % ||A^T\nabla g^*(b-Ax)||
         subplot(1,4,2)
         choose_logy = true;
         plot_minmax_median_quantiles('-',min_lsres,max_lsres,median_lsres,...
@@ -864,7 +868,7 @@ end  % end for loop over repeats
         
 
 
-        % ||A^T\nabla g^*(\hat b-Ax)||
+        % ||A^T\nabla g^*(b-Ax)||
         subplot(1,4,3)
         choose_logy = true;
         plot_minmax_median_quantiles('-',min_grad_zfunctional,max_grad_zfunctional,median_grad_zfunctional,...
@@ -872,7 +876,7 @@ end  % end for loop over repeats
                                                         method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
                                                         linecolor_dict,displayname_dict);
         xlabel('$k$','Interpreter','latex')
-        ylabel('$$\|A^T \nabla g^*(\hat b-Ax)\|/\|\hat b\|$$','Interpreter','latex')
+        ylabel('$$\|A^T \nabla g^*(b-Ax)\|/\|b\|$$','Interpreter','latex')
 
         % remove legend
         leg = legend('figure()');
@@ -898,10 +902,14 @@ end  % end for loop over repeats
         
         
         % save first row of figures with matlab2tikz
+        %{
         matlab2tikz('width','\figurewidth',...
         'extraaxisoptions','legend style={font=\scriptsize},', ...
         [dir_to_figures '/' fig_folder_name '/err_over_iter.tex']);
-
+        %}
+        matlab2tikz('width','\figurewidth',...
+        'extraaxisoptions','legend style={font=\scriptsize},', ...
+        'err_over_iter.tex');        
 
 
         % stem plots of last iterates
@@ -960,11 +968,14 @@ end  % end for loop over repeats
 
 
         % save figure with matlab2tikz
-
+        %{
         matlab2tikz('width','\figurewidth',...
         'extraaxisoptions','legend style={font=\scriptsize},', ...
         [dir_to_figures '/' fig_folder_name '/x_components.tex']);
-
+        %}
+        matlab2tikz('width','\figurewidth',...
+        'extraaxisoptions','legend style={font=\scriptsize},', ...
+        'x_components.tex');
     
     
     end
