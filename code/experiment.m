@@ -493,6 +493,7 @@ end  % end for loop over repeats
 
     
     if ~writeout
+        
 
         %% plot errors
         
@@ -502,7 +503,7 @@ end  % end for loop over repeats
 
         sgtitle(sprintf('Errors, m = %d, n = %d, s = %d, repeats = %d',m,n,sp,num_repeats));
 
-        subplot(1,4,1)
+        subplot(1,4,1);
 
         hold on
 
@@ -522,7 +523,7 @@ end  % end for loop over repeats
 
         % \|A^T(b-Ax)\|/\|b\|
 
-        subplot(1,4,2)
+        subplot(1,4,2);
 
         hold on
 
@@ -546,7 +547,7 @@ end  % end for loop over repeats
         
         % \|A^T \nabla g^*(b-Ax)\|/\|b\|
         
-        subplot(1,4,3)
+        subplot(1,4,3);
 
         hold on
 
@@ -558,7 +559,7 @@ end  % end for loop over repeats
                 linecolor_dict,displayname_dict);
 
         xlabel('$k$','Interpreter','latex')
-        ylabel('$$\|A^T \nabla g^*(b-Ax)\|/\|b\|$$','Interpreter','latex')
+        ylabel({'$$\text{space}$$','$$\|A^T \nabla g^*(b-Ax)\|/\|b\|$$'},'Interpreter','latex')
 
         % remove legend
         leg = legend('figure()');
@@ -570,7 +571,7 @@ end  % end for loop over repeats
 
         % \|x-\hat x\|/\|\hat x\|
 
-        subplot(1,4,4)
+        subplot(1,4,4);
 
         hold on 
 
@@ -591,12 +592,6 @@ end  % end for loop over repeats
         ylabel('$$\|x-\hat x\|/\|\hat x\|$$','Interpreter','latex')
 
         hold off                                                
-
-
-        
-        [ha, pos] = tight_subplot(1,4,[.01 .03],[.1 .01],[.01 .01]);
-        for ii = 1:6; axes(ha(ii)); plot(randn(10,ii)); end
-        set(ha(1:4),'XTickLabel',''); set(ha,'YTickLabel','')
 
 
 
@@ -834,10 +829,14 @@ end  % end for loop over repeats
     if writeout
         
         figure
+        
+        % choose spacings between the subfigures
+        [ha, pos] = tight_subplot(1,4,[.11 .11]);
+        %[ha, pos] = tight_subplot(1,4,[.15 .15],[.05 .05],[.05 .01]);
   
         % ||Ax- b_{exact}|| / ||b_{exact}|| 
         sgtitle(sprintf('Errors, m = %d, n = %d, s = %d, repeats = %d',m,n,sp,num_repeats));
-        subplot(1,4,1)
+        axes(ha(1));
         choose_logy = true;
         plot_array = plot_minmax_median_quantiles('-',min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
         leg = legend(plot_array, 'location', 'southwest');
@@ -852,7 +851,7 @@ end  % end for loop over repeats
         
 
         % ||A^T\nabla g^*(b-Ax)||
-        subplot(1,4,2)
+        axes(ha(2));
         choose_logy = true;
         plot_minmax_median_quantiles('-',min_lsres,max_lsres,median_lsres,...
                                                         quant25_lsres,quant75_lsres,choose_logy, ...
@@ -869,7 +868,7 @@ end  % end for loop over repeats
 
 
         % ||A^T\nabla g^*(b-Ax)||
-        subplot(1,4,3)
+        axes(ha(3));
         choose_logy = true;
         plot_minmax_median_quantiles('-',min_grad_zfunctional,max_grad_zfunctional,median_grad_zfunctional,...
                                                         quant25_grad_zfunctional,quant75_grad_zfunctional,choose_logy, ...
@@ -885,7 +884,7 @@ end  % end for loop over repeats
 
 
         % || x-\hat x||   
-        subplot(1,4,4)
+        axes(ha(4));
         choose_logy = true;
         plot_minmax_median_quantiles('-',min_err_to_sparse,max_err_to_sparse,median_err_to_sparse,...
                                                         quant25_err_to_sparse,quant75_err_to_sparse, choose_logy,...
@@ -901,6 +900,13 @@ end  % end for loop over repeats
         ylabel('$$\|x-\hat x\|/\|\hat x\|$$','Interpreter','latex')   
         
         
+        
+        for ii = 1:4
+            set(ha(ii),'XTickLabel',ha(ii).XTick);    
+            YTickLabel = show_full_power(ha(ii).YTick);     
+            set(ha(ii),'YTickLabel',YTickLabel); 
+        end
+        
         % save first row of figures with matlab2tikz
         %{
         matlab2tikz('width','\figurewidth',...
@@ -912,13 +918,19 @@ end  % end for loop over repeats
         'err_over_iter.tex');        
 
 
+    
+    
+    
         % stem plots of last iterates
         
         figure
         
+        num_suplots = 1 + length(method_array);
+        [ha, pos] = tight_subplot(1,num_suplots,[.05 .05],[.05 .05],[.05 .01]);
+        
         % b_{exact} vs. b       
 
-        subplot(1,5,1)
+        axes(ha(1));
 
         if real_setting 
             plot(1:m,b_exact,1:m,b,':'); 
@@ -938,7 +950,7 @@ end  % end for loop over repeats
 
         for method_counter = 1:length(method_array) 
 
-            subplot(1,5,plot_nr)
+            axes(ha(plot_nr));
 
             % only plot last iterate
             x = x_last_test_instance(:,method_counter);
@@ -964,7 +976,10 @@ end  % end for loop over repeats
 
         end
 
-
+        for ii = 1:4
+            set(ha(ii),'XTickLabel',ha(ii).XTick);       
+            set(ha(ii),'YTickLabel',ha(ii).YTick); 
+        end
 
 
         % save figure with matlab2tikz
@@ -1066,8 +1081,20 @@ end  % end for loop over repeats
 
 
 
+    function TickLabel = show_full_power(exponents)
+        TickLabel = {};
+        for kk = 1:length(exponents)
+            TickLabel = [TickLabel ['10^{' num2str(exponents(kk)) '}']];
+        end
+    end
+
+
+
+
 
 
 end
+
+
 
 

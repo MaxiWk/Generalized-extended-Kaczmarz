@@ -1,13 +1,13 @@
 fig_folder_name = 'dummy';
 dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/LeastSquares/tex/figures/';
 
-m = 1000; 
-n = 500; 
+m = 50;   % 1000
+n = 20;  % 500
 sp = min(m,n)/20; 
 
 real_setting = true; 
 
-maxiter = 2e5; %5e6 
+maxiter = 2e5; %2e5 
 
 num_repeats = 2; 
 
