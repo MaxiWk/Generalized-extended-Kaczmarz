@@ -1,17 +1,15 @@
-tic
-
 fig_folder_name = 'dummy';
 dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/LeastSquares/tex/figures/';
 
-m = 1000; 
-n = 500; 
+m = 1000;   % 1000
+n = 500;  % 500
 sp = min(m,n)/20; 
 
 real_setting = true; 
 
-maxiter = 5e6; %5e6 
+maxiter = 2e5; %2e5 
 
-num_repeats = 2; 
+num_repeats = 50; % 50
 
 writeout = true;
 
@@ -80,8 +78,6 @@ data = experiment(n,m,sp,real_setting,lambda,T,L_gstar,maxiter,num_repeats,iter_
                           writeout,dir_to_figures,fig_folder_name,disp_instance,savestep,stopcrit_sample_pars,method_array,experiment_description);
 
                                             
-toc 
-
 
 
 % save data and save figures as .pdf 

@@ -217,7 +217,7 @@ for repeats = 1:num_repeats
           ATb = A.'*b;
         end
         
-        lin_breg_stepsize = 1/norm(A)^2;
+        lin_breg_stepsize = 1/norm(A)^2; 
         
         tic;
         
@@ -493,43 +493,48 @@ end  % end for loop over repeats
 
     
     if ~writeout
-        
+
 
         %% plot errors
         
         % \|Ax- b_exact\| / \|b_{exact}\| 
+        
+        if any(strcmp(method_array, 'grek_2'))
+            num_subplots = 4;
+        else
+            num_subplots = 3;
+        end
 
         figure
 
         sgtitle(sprintf('Errors, m = %d, n = %d, s = %d, repeats = %d',m,n,sp,num_repeats));
 
-        subplot(1,4,1);
+        subplot(1,num_subplots,1);
 
         hold on
 
         choose_logy = true;
 
-        plot_array = plot_minmax_median_quantiles('-',min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+        [plot_array, new_YTick, YTickLabel] = plot_minmax_median_quantiles('-',min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
 
         leg = legend(plot_array, 'location', 'southwest');
 
         xlabel('$k$','Interpreter','latex')
 
         ylabel('$$\|Ax-\hat b\|/\|\hat b\|$$','Interpreter','latex')
+        
 
-        hold off
-
-
+        
 
         % \|A^T(b-Ax)\|/\|b\|
 
-        subplot(1,4,2);
+        h2 = subplot(1,num_subplots,2);
 
         hold on
 
         choose_logy = true;
 
-        plot_minmax_median_quantiles('-',min_lsres,max_lsres,median_lsres,...
+        [~, new_YTick, YTickLabel] = plot_minmax_median_quantiles('-',min_lsres,max_lsres,median_lsres,...
                 quant25_lsres,quant75_lsres,choose_logy, ...
                 method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
                 linecolor_dict,displayname_dict);
@@ -537,83 +542,49 @@ end  % end for loop over repeats
         xlabel('$k$','Interpreter','latex')
         ylabel('$$\|A^T(b-Ax)\|/\|b\|$$','Interpreter','latex')
 
-        % remove legend
-        leg = legend('figure()');
-        set(leg,'visible','off')
-
-        hold off
-
         
         
         % \|A^T \nabla g^*(b-Ax)\|/\|b\|
         
-        subplot(1,4,3);
+        if any(strcmp(method_array, 'grek_2'))
+            
+            subplot(1,num_subplots,3);
 
-        hold on
+            hold on
 
-        choose_logy = true;
+            choose_logy = true;
 
-        plot_minmax_median_quantiles('-',min_grad_zfunctional,max_grad_zfunctional,median_grad_zfunctional,...
-                quant25_grad_zfunctional,quant75_grad_zfunctional,choose_logy, ...
-                method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
-                linecolor_dict,displayname_dict);
+            [~, new_YTick, YTickLabel] = plot_minmax_median_quantiles('-',min_grad_zfunctional,max_grad_zfunctional,median_grad_zfunctional,...
+                    quant25_grad_zfunctional,quant75_grad_zfunctional,choose_logy, ...
+                    method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
+                    linecolor_dict,displayname_dict);
 
-        xlabel('$k$','Interpreter','latex')
-        ylabel({'$$\text{space}$$','$$\|A^T \nabla g^*(b-Ax)\|/\|b\|$$'},'Interpreter','latex')
-
-        % remove legend
-        leg = legend('figure()');
-        set(leg,'visible','off')
-
-        hold off
+            xlabel('$k$','Interpreter','latex')
+            ylabel({'$$\text{space}$$','$$\|A^T \nabla g^*(b-Ax)\|/\|b\|$$'},'Interpreter','latex') 
+            
+        end
 
 
 
         % \|x-\hat x\|/\|\hat x\|
 
-        subplot(1,4,4);
+        h4 = subplot(1,num_subplots,num_subplots);
 
         hold on 
 
         choose_logy = true;
 
-        plot_minmax_median_quantiles('-',min_err_to_sparse,max_err_to_sparse,median_err_to_sparse,...
+        [~, new_YTick, YTickLabel] = plot_minmax_median_quantiles('-',min_err_to_sparse,max_err_to_sparse,median_err_to_sparse,...
                                                         quant25_err_to_sparse,quant75_err_to_sparse, choose_logy,...
                                                         method_array,iter_save,maxiter,minmaxcolor_dict,...
                                                         quantcolor_dict,linecolor_dict,displayname_dict);
 
-        %legend(medianplot_array, 'location', 'northeast');
-
-        % remove legend
-        leg = legend('figure()');
-        set(leg,'visible','off')
-
         xlabel('$k$','Interpreter','latex')
         ylabel('$$\|x-\hat x\|/\|\hat x\|$$','Interpreter','latex')
 
-        hold off                                                
+        
 
 
-
-
-
-
-        %% Plot results for distance to the Moore-Penrose inverse solution 
-        %{
-        subplot(1,4,4)
-
-        hold on 
-
-        choose_logy = true;
-
-        plot_minmax_median_quantiles('-',min_err_to_moorepi,max_err_to_moorepi,median_err_to_moorepi,...
-                                                        quant25_err_to_moorepi,quant75_err_to_moorepi,choose_logy,...);
-                                                        method_array,iter_save,maxiter,minmaxcolor_dict,...
-                                                        quantcolor_dict,linecolor_dict,displayname_dict);
-        hold off                                                
-
-        title('$$\|x-x^\dagger\|/\|x^\dagger\|$$','Interpreter','latex')
-        %}
 
 
 
@@ -641,7 +612,7 @@ end  % end for loop over repeats
         hold on
         choose_logy = true;
 
-        plot_array = plot_minmax_median_quantiles('-',...
+        [plot_array, new_YTick, YTickLabel] = plot_minmax_median_quantiles('-',...
             min_resAbz_mean_list(:,method_counters_with_stopping),...
             max_resAbz_mean_list(:,method_counters_with_stopping),...
             median_resAbz_mean_list(:,method_counters_with_stopping),...
@@ -828,85 +799,101 @@ end  % end for loop over repeats
 
     if writeout
         
-        figure
         
-        % choose spacings between the subfigures
-        [ha, pos] = tight_subplot(1,4,[.11 .11]);
-        %[ha, pos] = tight_subplot(1,4,[.15 .15],[.05 .05],[.05 .01]);
-  
+        if any(strcmp(method_array, 'grek_2'))
+            num_subplots = 4;
+        else
+            num_subplots = 3;
+        end
+        
+        
+        figure
+         
         % ||Ax- b_{exact}|| / ||b_{exact}|| 
         sgtitle(sprintf('Errors, m = %d, n = %d, s = %d, repeats = %d',m,n,sp,num_repeats));
-        axes(ha(1));
+        h1 = subplot(1,num_subplots,1);
         choose_logy = true;
-        plot_array = plot_minmax_median_quantiles('-',min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
+        [plot_array, ~, ~] = plot_minmax_median_quantiles('-',min_res,max_res,median_res,quant25_res,quant75_res,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict);
         leg = legend(plot_array, 'location', 'southwest');
-        if writeout
-            set(leg,'visible','off')  % remove legend
-        end
+        set(leg,'visible','off')  % remove legend
 
         xlabel('$k$','Interpreter','latex')
         ylabel('$$\|Ax-\hat b\|/\|\hat b\|$$','Interpreter','latex')
-
         
         
 
-        % ||A^T\nabla g^*(b-Ax)||
-        axes(ha(2));
+
+        
+        % ||A^T(b-Ax)||
+        h2 = subplot(1,num_subplots,2);
         choose_logy = true;
         plot_minmax_median_quantiles('-',min_lsres,max_lsres,median_lsres,...
-                                                        quant25_lsres,quant75_lsres,choose_logy, ...
-                                                        method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
-                                                        linecolor_dict,displayname_dict);
+                                                    quant25_lsres,quant75_lsres,choose_logy, ...
+                                                    method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
+                                                    linecolor_dict,displayname_dict);
         xlabel('$k$','Interpreter','latex')
-        ylabel('$$\|A^T(b-Ax)\|/\|b\|$$','Interpreter','latex')
+        ylabel('$$\|A^T(b-Ax)\|/\|b\|$$','Interpreter','latex')     
 
-        % remove legend
-        leg = legend('figure()');
-        set(leg,'visible','off')
         
         
-
-
         % ||A^T\nabla g^*(b-Ax)||
-        axes(ha(3));
-        choose_logy = true;
-        plot_minmax_median_quantiles('-',min_grad_zfunctional,max_grad_zfunctional,median_grad_zfunctional,...
+        if any(strcmp(method_array, 'grek_2'))            
+            h3 = subplot(1,num_subplots,3);
+            choose_logy = true;
+            plot_minmax_median_quantiles('-',min_grad_zfunctional,max_grad_zfunctional,median_grad_zfunctional,...
                                                         quant25_grad_zfunctional,quant75_grad_zfunctional,choose_logy, ...
                                                         method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,...
                                                         linecolor_dict,displayname_dict);
-        xlabel('$k$','Interpreter','latex')
-        ylabel('$$\|A^T \nabla g^*(b-Ax)\|/\|b\|$$','Interpreter','latex')
-
-        % remove legend
-        leg = legend('figure()');
-        set(leg,'visible','off')
-
+            xlabel('$k$','Interpreter','latex')
+            ylabel('$$\|A^T \nabla g^*(b-Ax)\|/\|b\|$$','Interpreter','latex')        
+        end
+        
+        
 
 
         % || x-\hat x||   
-        axes(ha(4));
+        h4 = subplot(1,num_subplots,num_subplots);
         choose_logy = true;
         plot_minmax_median_quantiles('-',min_err_to_sparse,max_err_to_sparse,median_err_to_sparse,...
                                                         quant25_err_to_sparse,quant75_err_to_sparse, choose_logy,...
                                                         method_array,iter_save,maxiter,minmaxcolor_dict,...
                                                         quantcolor_dict,linecolor_dict,displayname_dict);
-
-        %legend(medianplot_array, 'location', 'northeast');
-
-        % remove legend
-        leg = legend('figure()');
-        set(leg,'visible','off')  
+                                                    
         xlabel('$k$','Interpreter','latex')
-        ylabel('$$\|x-\hat x\|/\|\hat x\|$$','Interpreter','latex')   
+        ylabel('$$\|x-\hat x\|/\|\hat x\|$$','Interpreter','latex') 
+
         
         
         
-        for ii = 1:4
-            set(ha(ii),'XTickLabel',ha(ii).XTick);    
-            YTickLabel = show_full_power(ha(ii).YTick);     
-            set(ha(ii),'YTickLabel',YTickLabel); 
+        % add horizontal space between subplots
+        space = 0.05;
+        pos_h1 = get(h1,'Position');  % inner box of first subplot (left, bottom, width, height)
+        pos_h1(1) = pos_h1(1) - space;
+        pos_h1(3) = pos_h1(3);
+        pos_h1(4) = pos_h1(4);
+        
+        set(h1, 'Position', pos_h1);
+        drawnow;
+        
+        
+        if any(strcmp(method_array, 'grek_2'))
+            
+            pos = get(h2, 'Position');        
+            set(h2, 'Position', [pos(1)-0.3*space, pos_h1(2:end)]);
+            drawnow;
+        
+            pos = get(h3, 'Position');        
+            set(h3, 'Position', [pos(1)+0.4*space, pos_h1(2:end)]);
+            drawnow;
+
+            pos = get(h4, 'Position');
+            set(h4, 'Position', [pos(1)+1.2*space, pos_h1(2:end)]);    
+            drawnow;
+            
         end
         
+
+    
         % save first row of figures with matlab2tikz
         %{
         matlab2tikz('width','\figurewidth',...
@@ -925,12 +912,11 @@ end  % end for loop over repeats
         
         figure
         
-        num_suplots = 1 + length(method_array);
-        [ha, pos] = tight_subplot(1,num_suplots,[.05 .05],[.05 .05],[.05 .01]);
-        
+        num_subplots = 1 + length(method_array);
+
         % b_{exact} vs. b       
 
-        axes(ha(1));
+        subplot(1,num_subplots,1);
 
         if real_setting 
             plot(1:m,b_exact,1:m,b,':'); 
@@ -950,13 +936,13 @@ end  % end for loop over repeats
 
         for method_counter = 1:length(method_array) 
 
-            axes(ha(plot_nr));
+            subplot(1,num_subplots,plot_nr);
 
             % only plot last iterate
             x = x_last_test_instance(:,method_counter);
             
             % prepare x and xhat for getting plot
-            tol_plot = 1e-5;
+            %tol_plot = 1e-5;
             %xhat = xhat(abs(x) > tol_plot);
             %x = x(abs(x) > tol_plot);
             if ~real_setting  % plot absolute values
@@ -976,10 +962,10 @@ end  % end for loop over repeats
 
         end
 
-        for ii = 1:4
-            set(ha(ii),'XTickLabel',ha(ii).XTick);       
-            set(ha(ii),'YTickLabel',ha(ii).YTick); 
-        end
+        %for ii = 1:4
+        %    set(ha(ii),'XTickLabel',ha(ii).XTick);       
+        %    set(ha(ii),'YTickLabel',ha(ii).YTick); 
+        %end
 
 
         % save figure with matlab2tikz
@@ -1086,6 +1072,20 @@ end  % end for loop over repeats
         for kk = 1:length(exponents)
             TickLabel = [TickLabel ['10^{' num2str(exponents(kk)) '}']];
         end
+    end
+
+
+
+    function TickLabel = make_scientific(Tick)
+        Tick = Tick(2:end);
+        exponents = floor(log10(Tick));
+        factors = Tick./(10.^floor(log10(Tick)));
+        TickLabel = {};
+        for kk = 1:length(exponents)
+            str = sprintf('%f \cdot 10^%f', factors(kk), exponents(kk));
+            TickLabel = [TickLabel, str];
+        end
+        TickLabel = ['0' TickLabel];
     end
 
 

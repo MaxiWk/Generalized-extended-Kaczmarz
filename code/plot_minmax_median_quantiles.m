@@ -1,4 +1,4 @@
-function medianplot_array = plot_minmax_median_quantiles(lineStyle,mins,maxs,medians,quant25s,quant75s,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict)
+function [medianplot_array, new_YTick, YTickLabel] = plot_minmax_median_quantiles(lineStyle,mins,maxs,medians,quant25s,quant75s,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict)
 
       medianplot_array = zeros(1, length(method_array));  % for legend
       num_iter_array = 1:iter_save:maxiter;
@@ -16,7 +16,7 @@ function medianplot_array = plot_minmax_median_quantiles(lineStyle,mins,maxs,med
             quantcolor_i = quantcolor_dict(method_array{i});
             h = fill([num_iter_array  fliplr(num_iter_array)], [log10(quant75s(:,i)')  fliplr(log10(quant25s(:,i))')], quantcolor_i,'EdgeColor', 'none');
             set(h,'facealpha', .5)
-            medianplot_array(i) = semilogy( num_iter_array,log10(medians(:,i)),linecolor_dict(method_array{i}),'LineWidth',2,...
+            medianplot_array(i) = plot( num_iter_array, log10(medians(:,i)),linecolor_dict(method_array{i}),'LineWidth',2,...
                        'DisplayName',displayname_dict(method_array{i}), 'LineStyle', lineStyle );
             ylabel('(log scale)')
           else 
@@ -28,14 +28,33 @@ function medianplot_array = plot_minmax_median_quantiles(lineStyle,mins,maxs,med
             medianplot_array(i) = plot( num_iter_array,medians(:,i),linecolor_dict(method_array{i}),'LineWidth',2,...
                        'DisplayName',displayname_dict(method_array{i}), 'LineStyle', lineStyle );          
           end
-          % use 10^ notation for iterations    
-          %xt = get(gca, 'xtick');
-          %set('xticklabel', sprintf('%1.1e|', xt));
-          
-          axis square
 
       end
       
-      hold off
+      % on y axis: replace t by 10^t for interesting t values    
+      
+      min_tick = floor(log10(min(min(mins))));
+      max_tick = ceil(log10(max(max(maxs))));
+      new_YTick = [0, min_tick, round(0.5*(min_tick+max_tick))];                       
+      new_YTick = sort(unique(new_YTick));
+      for ii = 1:length(new_YTick)
+          if new_YTick(ii) == 0
+              YTickLabel{ii} = '0';
+          else
+              YTickLabel{ii} = num2str(new_YTick(ii), '10^{%d}');
+          end
+      end
+      
+    ylim([min_tick max_tick])
+    set(gca, 'YTick', new_YTick, 'YTickLabel', YTickLabel);
+    drawnow
+      
+    axis square
+      
+    % remove legend
+    leg = legend('figure()');
+    set(leg,'visible','off')
+
+    hold off
       
     end

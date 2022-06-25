@@ -1,16 +1,15 @@
-fig_folder_name = 'noise_RAc_real';
+fig_folder_name = '';
 dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/ExtendedSparseKaczmarz_octave/tex/figures/';
 
 m = 1000;  % 500 
 n = 500;  % 1000
 sp = 25;   % 25
 
-
 num_repeats = 50; 
 
 real_setting = true;
 
-maxiter = 5e5; % Number of iterations % 5e6
+maxiter = 2e5; % Number of iterations % 5e6
 number_data_points = 500;
 iter_save = floor(maxiter/number_data_points);  % each such number of iterations, a data point is added in the error plot
 
@@ -34,10 +33,17 @@ savestep = 1;
 
 method_array = {'rek', 'srk', 'grek_1'}; 
 
+%experiment_description = 'rank-deficient, medium noise in R(A) complement';
+% noise0.5_rangeAc
+
 experiment_description = 'rank-deficient, large noise in R(A) complement';
 %noise5_rangeAc
 
 %experiment_description = 'rank deficient, noise split into R(A) and R(A) complement';
+
+%experiment_description = 'rank deficient, noise split into R(A) and R(A) complement 2';
+
+%experiment_description = 'rank deficient, noise split into R(A) and R(A) complement 3';
 
 %experiment_description = 'rank deficient, only noise in R(A) complement, well conditioned A'; % maxiter = 2*1e5
 % with sigma_max = 2, sigma_min = 1 -> very fast with sigma_max = 100,
@@ -70,7 +76,7 @@ L_gstar = [L_gstar_1,L_gstar_2];
 data = experiment(n,m,sp,real_setting,lambda_value,T,L_gstar,maxiter,num_repeats,iter_save,rowsamp,colsamp,...
                   writeout,dir_to_figures,fig_folder_name,disp_instance,savestep,stopcrit_sample_pars,method_array,experiment_description);                           
 
-save(fullfile([dir_to_figures '/' fig_folder_name, '/data.mat']), 'data', '-mat');
+save('data.mat', 'data', '-mat');
 
                               
                               
