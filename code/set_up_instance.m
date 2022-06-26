@@ -51,7 +51,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
           b_exact = A*xhat;               % exact data
           
           noiselev = noise_factor_rangeA_ortho *norm(b_exact);
-          b = add_noise_in_RAc(b_exact,A,noiselev);
+          b = add_noise_in_RAc(b_exact, A, noiselev);
           
           tol_resAbz = 1e-4;
           tol_resATz = 1e-6;
@@ -546,7 +546,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
   case 'fixed impulsive noise, rank deficient, uniform, medium conditioned'
   
           num_comp_noise = ceil(min(m,n)/20);
-          noiselev_impulsive_factor = 1;
+          noiselev_impulsive_factor = 5;
           
           rank = round(min(m,n)/2);
           sing_values_data.distribution = 'uniform';
@@ -758,13 +758,16 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
   function b = add_fixed_impulsive_noise(b, num_comp_noise, noiselev, real_setting)
           
       supp_impulsive_noise = randsample(m, num_comp_noise);
-      rand_signs = (-1).^ randi(2, 1, num_comp_noise);
+      rand_signs = (-1).^ randi(2, 1, num_comp_noise)';
+      sparse_random_vector = rand_signs * noiselev;
 
-      if real_setting
-          b(supp_impulsive_noise) = b(supp_impulsive_noise) + rand_signs * noiselev;
-      else
-          b(supp_impulsive_noise) = b(supp_impulsive_noise) + rand_signs * (1+1i) * sqrt(0.5*noiselev);
+      if ~real_setting
+          rand_signs = (-1).^ randi(2, 1, num_comp_noise)';
+          sparse_random_vector = sparse_random_vector + 1i * rand_signs * noiselev;
+          sparse_random_vector = sparse_random_vector / sqrt(2);
       end
+      
+      b(supp_impulsive_noise) = b(supp_impulsive_noise) + sparse_random_vector;
 
   end
 
@@ -776,6 +779,7 @@ function problem_data = set_up_instance(m,n,sp,real_setting,experiment_descripti
 
       if ~real_setting
           sparse_random_vector = sparse_random_vector + 1i *noiselev *(2*rand(length(supp_impulsive_noise),1)-1);
+          sparse_random_vector = sparse_random_vector / sqrt(2);
       end
 
       b(supp_impulsive_noise) = b(supp_impulsive_noise) + sparse_random_vector;

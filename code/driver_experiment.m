@@ -7,7 +7,7 @@ sp = 25;   % 25
 
 num_repeats = 50; 
 
-real_setting = true;
+real_setting = false;
 
 maxiter = 2e5; % Number of iterations % 5e6
 number_data_points = 500;

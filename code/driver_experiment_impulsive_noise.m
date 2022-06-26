@@ -56,10 +56,9 @@ method_array = {'rek','srk','grek_1','grek_2'};
 %method_array = {'grek_2'}; 
 
 %experiment_description = 'impulsive noise, rank deficient, uniform, well conditioned';
-%experiment_description = 'impulsive noise, rank deficient, uniform, medium conditioned';
 %experiment_description = 'impulsive noise, rank deficient, uniform, bad conditioned';
 %experiment_description = 'impulsive noise, rank deficient, uniform, medium conditioned';
-experiment_description = 'impulsive noise, rank deficient, uniform, medium conditioned';
+experiment_description = 'fixed impulsive noise, rank deficient, uniform, medium conditioned';
 
 median_res = zeros(maxiter,length(method_array));
 
