@@ -1,15 +1,15 @@
 fig_folder_name = 'dummy';
 dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/LeastSquares/tex/figures/';
 
-m = 1000;   % 1000
-n = 500;  % 500
-sp = min(m,n)/20; 
+m = 3;   % 1000
+n = 5;  % 500
+sp = 2;  % min(m,n)/20; 
 
 real_setting = false; 
 
 maxiter = 2e5; %2e5 
 
-num_repeats = 50; % 50
+num_repeats = 2; % 50
 
 writeout = true;
 
@@ -22,7 +22,7 @@ colsamp = 'uniform';
 
 % f(x) = epsilon/2 ||x||_2^2 + gamma ||x||_1  Nonsparse: Set gamma=0.
 % T = grad g^*, see below for different T
-lambda = 10;   
+lambda = 5;   
 %gamma = 0.1;
 epsilon = 1e-2;    % 0.01
 tau = 0.001;    

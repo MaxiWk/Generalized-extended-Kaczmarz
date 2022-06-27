@@ -1,42 +1,37 @@
-function data = experiment(n, m, sp, real, lambda, epsilon, tau, maxiter, num_repeats, iter_save, ...
+function data = experiment(m, n, sp, real, lambda, epsilon, tau, maxiter, num_repeats, iter_save, ...
                           rowsamp, colsamp, writeout, ...
                           method_ids, experiment_description)
                           
-% Experiment to ompare usual extended Kaczmarz, sparse Kaczmarz and sparse extended Kaczmarz (all randomized)
-% The parameters are:
-%  n: number of columns
-%  m: number of rows
-%  sp: number of nozeros in solution 
-%  real: boolean, if true: solve Ax=b with real data A,b, if false:
-%  complex data A,b
-%  T: gradient g*, can also be a cell array of different gradients g* -> then names 'gerk_1', 'gerk_2',.. 
-%  Needs to match also to L_gstar_1, L_gstar_2, ...
-%  We require length(T) == length(L_gstar) < 3 if cell array
-%  We use 
+% Experiment to compare extended Kaczmarz, sparse Kaczmarz and sparse extended Kaczmarz (all randomized)
+% We use 
 %  g^*(x) = 1/2 ||x||_2^2 or 
-%  g^*(x) = r_epsilon(x) + tau/2 ||x||_2^2 with Huber function r_epsilon =
-%  ^{epsilon} ||.||_1 (Moreau-envelope of 1-norm)
-%  Here always gradient f^* = soft shrinkage with parameter lambda
-%  L_gstar: Lipschitz constant of T (i.e. of gradient g^*)
-%  maxiter: maximum number of Kaczmarz-steps (projections, not sweeps)
+%  g^*(x) = r_epsilon(x) + tau/2 ||x||_2^2 
+%  with Huber function r_epsilon = ^{epsilon} ||.||_1 (Moreau-envelope of 1-norm) 
+
+% The parameters are:
+%  m: number of rows
+%  n: number of columns
+%  sp: number of nonzeros in exact sparse solution 
+%  real: boolean real or complex data A,b, and exact solution x
+%  lambda: sparsity parameter in f(x) = 1/2 ||x||_2^2 + lambda ||x||_1
+%  epsilon, tau: parameters in g^*(x) = r_epsilon(x) + tau/2 ||x||_2^2, see
+%  above for def. of r_epsilon
+%  maxiter: maximum number of Kaczmarz-steps 
 %  num_repeats: number of repetitions (samples)
 %  iter_save: each such number of iterations, a data point is added in the error plot
-%  rowsamp: Method to sample the rows. Can be
+%  rowsamp (colsamp): Method to sample the rows (columns). Can be
 %    'rownorms_squared': probablity proportional to the squares of row-norms
 %    ' uniform': Uniform sampling of rows 
 %    ' random_probabilities': Sample a vector of probabilities uniformly at
 %        random
-%  colsamp: Analogously for column sampling in case of extended Kaczmarz
-%  writeout: boolean (if true generate subplot as in paper and save it with matlab2tikz, if false show single plots with titles and do not save them)
-%  dir_to_figures: Directory to folder where to save figures with matlab2tikz
-%  in case of writeout==true
-%  fig_folder_name: in case of writeout==true: is added on dir_to_figures and in the name of the error
+%  writeout: boolean (if true generate subplot as in paper and save it with
+%  matlab2tikz, also save most important data in a data struct,
+%  if false show single plots with titles and do not save them)
 %  method_ids: cell array with method identifiers. Possible values:
-%  'rk': Kaczmarz, 'srk': Sparse Randomized Kaczmarz, 'esrk': Exact step Sparse Kaczmarz, 
-%  'gerk_{1,2,3}': (Generalized) Sparse Randomized Extended Kaczmarz, 'egerk': Exact step Sparse
-%  Randomized Extended Kaczmarz
+%  'rk': Kaczmarz, 'rek' Extended Kaczmarz, 'srk': Sparse Randomized Kaczmarz, 
+%  'gerk_{ad,bd}': (Generalized) Sparse Randomized Extended Kaczmarz,
 %  experiment_description: cell array with identifiers for experiments, see
-%  set_up_instance script
+%  'set_up_instance' script
 
 % Some standard parameters for an experiment:
 % n = 200;        % Number of columns
@@ -47,11 +42,13 @@ function data = experiment(n, m, sp, real, lambda, epsilon, tau, maxiter, num_re
 % epsilon = 1e-2;
 % tau = 1e-3;
 % maxiter = 2e5; % Number of iterations
+% num_repeats = 50; % Number of repeats over random instances
+% iter_save = floor(maxiter/500);
 % rowsamp = 'uniform';
 % colsamp = 'uniform';
-% num_repeats = 50; % Number of repeats over random instances
 % writeout = false;
-
+% method_ids = {'rek', 'srk', 'gerk_ad'}; 
+% experiment_description = 'rank-deficient, large noise in R(A) complement';
 
 
 
@@ -133,7 +130,7 @@ for repeats = 1:num_repeats
   
     
     norma = sum(abs(A).^2,2);      % squared norms of rows of A
-    norma_col = sum(abs(A).^2,1);  % squared norms of cols of A
+    normc = sum(abs(A).^2,1);  % squared norms of cols of A
     norm_b = norm(b);
     norm_b_exact = norm(b_exact);
     
@@ -155,7 +152,7 @@ for repeats = 1:num_repeats
     
     switch lower(colsamp)
         case {'colnorms squared'}
-            pcol = norma_col./sum(norma_col);
+            pcol = normc./sum(normc);
             Pcol = cumsum(pcol);
             samp_col = @(k) nnz(rand>Pcol)+1;
         case {'uniform'}
@@ -237,13 +234,13 @@ for repeats = 1:num_repeats
                   
                 % Extended Kaczmarz  
                 case 'rek'
-                  zstar = zstar - (c'*zstar)/(norma_col(s)) *c;
+                  zstar = zstar - (c'*zstar)/(normc(s)) *c;
                   x = x - (a*x-b(r)+zstar(r))/norma(r) *a';
 
                 % GERK methods
                 case {'gerk_ad', 'gerk_bd'}
                   gerk_method = gerk_dict(method_id);
-                  zstar = zstar - (c'*z) / (gerk_method.L_gstar * norma_col(s)) * c;
+                  zstar = zstar - (c'*z) / (gerk_method.L_gstar * normc(s)) * c;
                   z = gerk_method.grad_gstar(zstar);
                   xstar = xstar -(a*x-b(r)+zstar(r))/(gerk_method.L_fstar * norma(r)) *a';
                   x = gerk_method.grad_fstar(xstar);  
@@ -344,6 +341,8 @@ end  % end for loop over repeats
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
     % make plots
     
+    % plot no. 1: errors
+    
     
     if any(strcmp(method_ids, 'gerk_bd'))
         num_subplots = 4;
@@ -443,15 +442,16 @@ end  % end for loop over repeats
 
     % save first row of figures with matlab2tikz
     matlab2tikz('width','\figurewidth',...
-    'extraaxisoptions','legend style={font=\scriptsize},', ...
     'output/err_over_iter.tex');        
 
 
 
 
 
-    % stem plots of last iterates
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % plot no. 2: stem plots of corrupted right-hand side 
+    % and last iterates x together with exact sparse solution xhat
+ 
     figure
 
     num_subplots = 1 + length(method_ids); 

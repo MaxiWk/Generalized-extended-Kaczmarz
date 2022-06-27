@@ -2,14 +2,11 @@
 % Maximilian Winkler, maximilian.winkler@tu-bs.de
 % Lionel Ngoupeyou Tondji, l.ngoupeyou-tondji.tu-bs.de
 
-dir_to_figures = '';
-fig_folder_name = '';
-
 method_ids = {'rek', 'srk', 'gerk_ad'}; 
 
 m = 5;  % 500 
 n = 3;  % 1000
-sp = 2;   % 25
+sp = 2; % min(m,n)/20; 
 
 real = false;
 
@@ -32,8 +29,7 @@ writeout = false;
 
 experiment_description = 'rank-deficient, large noise in R(A) complement';
 
-
-data = experiment(n, m, sp, real, lambda, epsilon, tau, maxiter, num_repeats, iter_save, rowsamp, colsamp,...
+data = experiment(m, n, sp, real, lambda, epsilon, tau, maxiter, num_repeats, iter_save, rowsamp, colsamp,...
                   writeout, method_ids, experiment_description);    
                                          
 
