@@ -9,7 +9,7 @@ function data = experiment(n, m, sp, real, lambda, epsilon, tau, maxiter, num_re
 %  sp: number of nozeros in solution 
 %  real: boolean, if true: solve Ax=b with real data A,b, if false:
 %  complex data A,b
-%  T: gradient g*, can also be a cell array of different gradients g* -> then names 'grek_1', 'grek_2',.. 
+%  T: gradient g*, can also be a cell array of different gradients g* -> then names 'gerk_1', 'gerk_2',.. 
 %  Needs to match also to L_gstar_1, L_gstar_2, ...
 %  We require length(T) == length(L_gstar) < 3 if cell array
 %  We use 
@@ -33,18 +33,23 @@ function data = experiment(n, m, sp, real, lambda, epsilon, tau, maxiter, num_re
 %  fig_folder_name: in case of writeout==true: is added on dir_to_figures and in the name of the error
 %  method_ids: cell array with method identifiers. Possible values:
 %  'rk': Kaczmarz, 'srk': Sparse Randomized Kaczmarz, 'esrk': Exact step Sparse Kaczmarz, 
-%  'grek_{1,2,3}': (Generalized) Sparse Randomized Extended Kaczmarz, 'egrek': Exact step Sparse
+%  'gerk_{1,2,3}': (Generalized) Sparse Randomized Extended Kaczmarz, 'egerk': Exact step Sparse
 %  Randomized Extended Kaczmarz
 %  experiment_description: cell array with identifiers for experiments, see
 %  set_up_instance script
 
 % Some standard parameters for an experiment:
 % n = 200;        % Number of columns
-% m = round(5*n); % Number of rows
-% sp = round(n/8); % Number of nonzeros in solution
-% maxiter = 40*m; % Number of iterations
-% rowsamp = 'rownorms squared';
-% num_repeats = 60;% Number of repeats over random instances
+% m = 500; % Number of rows
+% sp = round(n/20); % Number of nonzeros in solution
+% real = true;
+% lambda = 5;
+% epsilon = 1e-2;
+% tau = 1e-3;
+% maxiter = 2e5; % Number of iterations
+% rowsamp = 'uniform';
+% colsamp = 'uniform';
+% num_repeats = 50; % Number of repeats over random instances
 % writeout = false;
 
 
@@ -91,7 +96,7 @@ gerk_bd = GERK_method('gerk_bd', grad_fstar, L_fstar, grad_gstar, L_gstar);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Initialize storage arrays for results
 num_methods = length(method_ids); 
-[res, lsres, grad_Huber_functional, err_to_sparse, err_to_moorepi, nonzero_entries]...
+[res, lsres, grad_Huber_functional, err_to_sparse, nonzero_entries]...
                      = deal( zeros(floor(maxiter/iter_save), num_repeats, num_methods) );
 x_last_repeat = zeros(n,num_methods);
 %[resAbz_list, resATz_list] = deal( zeros(floor(maxiter/iter_save), num_repeats, num_methods) );
@@ -143,7 +148,7 @@ for repeats = 1:num_repeats
             p = rand(m,1); p=p/sum(p); 
             P = cumsum(p);
             samp_row = @(k) nnz(rand>P)+1;
-    end % end row sampling switch
+    end     
     
     switch lower(colsamp)
         case {'colnorms squared'}
@@ -156,14 +161,14 @@ for repeats = 1:num_repeats
             pcol = rand(n,1); pcol=pcol/sum(pcol);
             Pcol = cumsum(pcol);
             samp_col = @(k) nnz(rand>Pcol)+1;
-    end % end row sampling switch
+    end 
     
 
     
     
     for method_counter = 1:length(method_ids)
       
-        method = method_ids{method_counter};
+        method_id = method_ids{method_counter};
         iter_save_counter = 1;
         tol_nonzero_entries = 1e-5;
 
@@ -172,8 +177,8 @@ for repeats = 1:num_repeats
         x = zeros(n,1);  
         xstar = zeros(n,1);  
         zstar = b;
-        if strcmp(method, 'gerk_bd')
-           z = grek_bd.grad_gstar(zstar);
+        if strcmp(method_id, 'gerk_bd')
+           z = gerk_bd.grad_gstar(zstar);
         else
             z = zstar;
         end
@@ -216,7 +221,7 @@ for repeats = 1:num_repeats
               %%%%%%%%%%%%
               % 4. perform update 
               
-              switch method
+              switch method_id
 
                 % Kaczmarz 
                 case 'rk'
@@ -232,15 +237,15 @@ for repeats = 1:num_repeats
                   zstar = zstar - (c'*zstar)/(norma_col(s)) *c;
                   x = x - (a*x-b(r)+zstar(r))/norma(r) *a';
 
-                % GERK-(a,d) method
-                case 'grek_ad'
+                % GERK method
+                case 'gerk_ad'
                   zstar = zstar - (c'*z) / (gerk_ad.L_gstar * norma_col(s)) * c;
                   z = gerk_ad.grad_gstar(zstar);
                   xstar = xstar -(a*x-b(r)+zstar(r))/(gerk_ad.L_fstar * norma(r)) *a';
                   x = gerk_ad.grad_fstar(xstar);  
 
-                % Sparse Extended Kaczmarz 
-                case 'grek_bd'
+                % GERK method
+                case 'gerk_bd'
                   zstar = zstar - (c'*z) / (gerk_bd.L_gstar * norma_col(s)) * c;
                   z = gerk_bd.grad_gstar(zstar);
                   xstar = xstar -(a*x-b(r)+zstar(r))/(gerk_bd.L_fstar * norma(r)) *a';
@@ -287,29 +292,29 @@ end  % end for loop over repeats
     linecolor_dict('rk') = 'c';
     linecolor_dict('srk') = 'b';
     linecolor_dict('rek') = 'k';
-    linecolor_dict('grek_ad') = 'r';
-    linecolor_dict('grek_bd') = 'g';
+    linecolor_dict('gerk_ad') = 'r';
+    linecolor_dict('gerk_bd') = 'g';
 
     minmaxcolor_dict = containers.Map();
     minmaxcolor_dict('rk') = lightcyan;
     minmaxcolor_dict('srk') = lightblue;
     minmaxcolor_dict('rek') = lightgray;
-    minmaxcolor_dict('grek_ad') = lightred;
-    minmaxcolor_dict('grek_bd') = lightgreen;
+    minmaxcolor_dict('gerk_ad') = lightred;
+    minmaxcolor_dict('gerk_bd') = lightgreen;
 
     quantcolor_dict = containers.Map();
     quantcolor_dict('rk') = mediumcyan;
     quantcolor_dict('srk') = mediumblue;
     quantcolor_dict('rek') = mediumgray;
-    quantcolor_dict('grek_ad') = mediumred; 
-    quantcolor_dict('grek_bd') = mediumgreen; 
+    quantcolor_dict('gerk_ad') = mediumred; 
+    quantcolor_dict('gerk_bd') = mediumgreen; 
 
     displayname_dict = containers.Map();
     displayname_dict('rk') = 'Kaczmarz';
     displayname_dict('srk') = 'SRK';
     displayname_dict('rek') = 'Extended Kaczmarz';
-    displayname_dict('grek_ad') = 'GREK 1'; 
-    displayname_dict('grek_bd') = 'GREK 2'; 
+    displayname_dict('gerk_ad') = 'GERK-(a,d)'; 
+    displayname_dict('gerk_bd') = 'GERK-(b,d)'; 
 
     
 
@@ -321,16 +326,11 @@ end  % end for loop over repeats
     [min_lsres, max_lsres, median_lsres, quant25_lsres, quant75_lsres] = compute_minmax_median_quantiles(lsres);
     [min_err_to_sparse, max_err_to_sparse, median_err_to_sparse, quant25_err_to_sparse, quant75_err_to_sparse]...
          = compute_minmax_median_quantiles(err_to_sparse);
-    [min_nonzero_entries, max_nonzero_entries, median_nonzero_entries, quant25_nonzero_entries, quant75_nonzero_entries]...
+    [min_nonzero_entries, max_nonzero_entries, median_nonzero_entries, ~, ~]...
          = compute_minmax_median_quantiles(nonzero_entries);
     [min_grad_Huber_functional, max_grad_Huber_functional, median_grad_Huber_functional, quant25_grad_Huber_functional,...
      quant75_grad_Huber_functional]...
          = compute_minmax_median_quantiles(grad_Huber_functional);  
-    %[min_resAbz_list, max_resAbz_list, median_resAbz_list, quant25_resAbz_list, quant75_resAbz_list] = compute_minmax_median_quantiles(resAbz_list);
-    %[min_resATz_list, max_resATz_list, median_resATz_list, quant25_resATz_list, quant75_resATz_list] = compute_minmax_median_quantiles(resATz_list);
-    %[min_resAbz_mean_list, max_resAbz_mean_list, median_resAbz_mean_list, quant25_resAbz_mean_list, quant75_resAbz_mean_list] = compute_minmax_median_quantiles(resAbz_mean_list);
-    %[min_resATz_mean_list, max_resATz_mean_list, median_resATz_mean_list, quant25_resATz_mean_list, quant75_resATz_mean_list] = compute_minmax_median_quantiles(resATz_mean_list);
-
     
     
     % set zero entries to eps for not getting -inf in log plot
@@ -348,7 +348,7 @@ end  % end for loop over repeats
     % make plots
     
     
-    if any(strcmp(method_ids, 'grek_bd'))
+    if any(strcmp(method_ids, 'gerk_bd'))
         num_subplots = 4;
     else
         num_subplots = 3;
@@ -386,7 +386,7 @@ end  % end for loop over repeats
 
 
     % ||A^T\nabla g^*(b-Ax)||
-    if any(strcmp(method_ids, 'grek_bd'))            
+    if any(strcmp(method_ids, 'gerk_bd'))            
         h3 = subplot(1,num_subplots,3);
         choose_logy = true;
         plot_minmax_median_quantiles('-',min_grad_Huber_functional,max_grad_Huber_functional,median_grad_Huber_functional,...
@@ -426,7 +426,7 @@ end  % end for loop over repeats
     drawnow;
 
 
-    if any(strcmp(method_ids, 'grek_bd'))
+    if any(strcmp(method_ids, 'gerk_bd'))
 
         pos = get(h2, 'Position');        
         set(h2, 'Position', [pos(1)-0.3*space, pos_h1(2:end)]);
@@ -548,7 +548,9 @@ end  % end for loop over repeats
                   'max_nonzero_entries', max_nonzero_entries, 'min_nonzero_entries', min_nonzero_entries, ...
                   'median_nonzero_entries', median_nonzero_entries);
 
-              
+    if writeout
+        save('output/data.mat', 'data', '-mat');
+    end
               
               
          

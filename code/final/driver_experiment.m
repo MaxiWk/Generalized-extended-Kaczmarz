@@ -5,7 +5,7 @@
 dir_to_figures = '';
 fig_folder_name = '';
 
-method_ids = {'rek', 'srk', 'grek_ad'}; 
+method_ids = {'rek', 'srk', 'gerk_ad'}; 
 
 m = 5;  % 500 
 n = 3;  % 1000
@@ -37,7 +37,7 @@ data = experiment(n, m, sp, real, lambda, epsilon, tau, maxiter, num_repeats, it
                   writeout, method_ids, experiment_description);    
                                          
 
-save('output/data.mat', 'data', '-mat');
+
 
                               
                               
