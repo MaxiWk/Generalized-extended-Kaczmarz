@@ -68,11 +68,13 @@ fprintf('Experiment A, m=%d, n=%d, sp=%d, maxiter=%d, num_repeats=%d,\n',m,n,sp,
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% helper functions 
-% all used GERK methods are represented in a class and listed below
+% helper functions for GERK methods
+% All used GERK methods are represented in a class and listed below
 
 soft = @(x) max(abs(x)-lambda,0).*sign(x); % Soft thresholding 
-grad_Huber = @(x) (1./ max(epsilon,abs(x))+tau).* x;   
+grad_Huber = @(x) (1./ max(epsilon,abs(x))+tau).* x; 
+
+gerk_dict = containers.Map;
 
 % GERK-(a,d) method (sparse in x, L2-proj of b onto R(A))
 grad_fstar = soft;
@@ -80,14 +82,15 @@ L_fstar = 1;
 grad_gstar = @(x) x;
 L_gstar = 1;
 gerk_ad = GERK_method('gerk_ad', grad_fstar, L_fstar, grad_gstar, L_gstar);
+gerk_dict('gerk_ad') = gerk_ad;
 
 % GERK-(b,d) method (sparse in x, approximated L1-proj of b onto R(A))
 grad_fstar = soft;
 L_fstar = 1;
 grad_gstar = grad_Huber;
 L_gstar = 1/epsilon + tau;
-
 gerk_bd = GERK_method('gerk_bd', grad_fstar, L_fstar, grad_gstar, L_gstar);
+gerk_dict('gerk_bd') = gerk_bd;
 
 
 
@@ -237,19 +240,13 @@ for repeats = 1:num_repeats
                   zstar = zstar - (c'*zstar)/(norma_col(s)) *c;
                   x = x - (a*x-b(r)+zstar(r))/norma(r) *a';
 
-                % GERK method
-                case 'gerk_ad'
-                  zstar = zstar - (c'*z) / (gerk_ad.L_gstar * norma_col(s)) * c;
-                  z = gerk_ad.grad_gstar(zstar);
-                  xstar = xstar -(a*x-b(r)+zstar(r))/(gerk_ad.L_fstar * norma(r)) *a';
-                  x = gerk_ad.grad_fstar(xstar);  
-
-                % GERK method
-                case 'gerk_bd'
-                  zstar = zstar - (c'*z) / (gerk_bd.L_gstar * norma_col(s)) * c;
-                  z = gerk_bd.grad_gstar(zstar);
-                  xstar = xstar -(a*x-b(r)+zstar(r))/(gerk_bd.L_fstar * norma(r)) *a';
-                  x = gerk_bd.grad_fstar(xstar);  
+                % GERK methods
+                case {'gerk_ad', 'gerk_bd'}
+                  gerk_method = gerk_dict(method_id);
+                  zstar = zstar - (c'*z) / (gerk_method.L_gstar * norma_col(s)) * c;
+                  z = gerk_method.grad_gstar(zstar);
+                  xstar = xstar -(a*x-b(r)+zstar(r))/(gerk_method.L_fstar * norma(r)) *a';
+                  x = gerk_method.grad_fstar(xstar);  
 
               end 
 
