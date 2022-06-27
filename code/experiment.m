@@ -306,10 +306,6 @@ for repeats = 1:num_repeats
                   xdual = xdual -(a*x-b(r))/norma(r)* a';
                   x = S(xdual);
 
-                % Sparse Kaczmarz with exact stept
-                case 'esrk'
-                  [x,xdual] = linesearch_shrinkage(x,xdual,a.',b(r),lambda);
-
                 % Extended Kaczmarz  
                 case 'rek'
                   zdual = zdual - (c'*zdual)/(norma_col(s)) *c;

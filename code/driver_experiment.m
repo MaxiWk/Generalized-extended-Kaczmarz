@@ -1,15 +1,15 @@
 fig_folder_name = '';
 dir_to_figures = '/Users/maximilianwinkler/Documents/Braunschweig/Forschungsthemen/Stochastic_splitting_methods/Kaczmarz method/Sparse Kaczmarz/ExtendedSparseKaczmarz_octave/tex/figures/';
 
-m = 1000;  % 500 
-n = 500;  % 1000
-sp = 25;   % 25
+m = 5;  % 500 
+n = 3;  % 1000
+sp = 2;   % 25
 
-num_repeats = 50; 
+num_repeats = 2; 
 
 real_setting = false;
 
-maxiter = 2e5; % Number of iterations % 5e6
+maxiter = 1e4; % Number of iterations % 5e6
 number_data_points = 500;
 iter_save = floor(maxiter/number_data_points);  % each such number of iterations, a data point is added in the error plot
 
@@ -27,7 +27,7 @@ tau = 0.001;
 T_2 = @(x) T_taureg(x,epsilon,tau);
 L_gstar_2 = 1/epsilon + tau;
 
-writeout = true; 
+writeout = false; 
 
 savestep = 1; 
 
