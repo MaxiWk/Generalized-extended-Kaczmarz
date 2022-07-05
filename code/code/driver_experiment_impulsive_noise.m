@@ -1,13 +1,16 @@
+% driver for experiment (i) 
+% Maximilian Winkler, maximilian.winkler@tu-bs.de
+% Lionel Ngoupeyou Tondji, l.ngoupeyou-tondji.tu-bs.de
 
 method_ids = {'rek','srk','gerk_ad','gerk_bd'}; 
 
-m = 3;   % 1000
-n = 5;  % 500
-sp = 2;  % min(m,n)/20; 
+m = 1000;   % 1000
+n = 500;  % 500
+sp = min(m,n)/20; 
 
 real = false; 
 
-num_repeats = 2; % 50
+num_repeats = 50; % 50
 maxiter = 2e5; %2e5 
 
 number_data_points = 500;
@@ -28,6 +31,7 @@ writeout = true;
 %experiment_description = 'impulsive noise, rank deficient, uniform, bad conditioned';
 %experiment_description = 'impulsive noise, rank deficient, uniform, medium conditioned';
 experiment_description = 'fixed impulsive noise, rank deficient, uniform, medium conditioned';
+%experiment_description = 'fixed impulsive noise, rank deficient, uniform, bad conditioned';
 
 data = experiment(m, n, sp, real, lambda, epsilon, tau, maxiter, num_repeats, iter_save, rowsamp, colsamp, ...
            writeout, method_ids, experiment_description);

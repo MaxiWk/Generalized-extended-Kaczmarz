@@ -190,7 +190,7 @@ for repeats = 1:num_repeats
         for iter = 1:maxiter
 
               %%%%%%%%%%%%
-              % 1.: sample indeces
+              % 1.: sample indices
 
               r = samp_row(iter); % tmp - nur zum debuggen
               a = A(r,:);
@@ -219,7 +219,7 @@ for repeats = 1:num_repeats
               
               
               %%%%%%%%%%%%
-              % 4. perform update 
+              % 3. perform update 
               
               switch method_id
 

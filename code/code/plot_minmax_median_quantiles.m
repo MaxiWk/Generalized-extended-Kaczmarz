@@ -1,3 +1,6 @@
+% plot routine used for error plots 
+% (median value, 0.25- and 0.75-quantile and labeling)
+
 function [medianplot_array, new_YTick, YTickLabel] = plot_minmax_median_quantiles(lineStyle,mins,maxs,medians,quant25s,quant75s,choose_logy,method_array,iter_save,maxiter,minmaxcolor_dict,quantcolor_dict,linecolor_dict,displayname_dict)
 
       medianplot_array = zeros(1, length(method_array));  % for legend

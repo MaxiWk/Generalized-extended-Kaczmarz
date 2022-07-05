@@ -4,14 +4,14 @@
 
 method_ids = {'rek', 'srk', 'gerk_ad'}; 
 
-m = 5;  % 500 
-n = 3;  % 1000
-sp = 2; % min(m,n)/20; 
+m = 1000;  % 500 
+n = 500;  % 1000
+sp = min(m,n)/20; 
 
 real = false;
 
-num_repeats = 2; 
-maxiter = 1e4; % iterations
+num_repeats = 50;  % 50
+maxiter = 2e5; % 2e5
 
 number_data_points = 500;
 iter_save = floor(maxiter/number_data_points);  % each such number of iterations, a data point is added in the error plot
@@ -23,7 +23,7 @@ lambda = 5;
 epsilon = 0.01;
 tau = 0.001;
 
-writeout = false; 
+writeout = true; 
 
 %experiment_description = 'rank-deficient, medium noise in R(A) complement';
 
