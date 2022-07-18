@@ -8,7 +8,7 @@ m = 1000;   % 1000
 n = 500;  % 500
 sp = min(m,n)/20; 
 
-real = true; 
+real = false; 
 
 num_repeats = 50; % 50
 maxiter = 2e5; %2e5 
