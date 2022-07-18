@@ -8,7 +8,7 @@ m = 1000;   % 1000
 n = 500;  % 500
 sp = min(m,n)/20; 
 
-real = false; 
+real = true; 
 
 num_repeats = 50; % 50
 maxiter = 2e5; %2e5 
@@ -19,7 +19,7 @@ iter_save = floor(maxiter/number_data_points);  % each such number of iterations
 rowsamp = 'uniform';
 colsamp = 'uniform'; 
 
-lambda = 5;   
+lambda = 10;   
 epsilon = 0.01;  
 tau = 0.001;    
 
