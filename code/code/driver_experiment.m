@@ -10,8 +10,8 @@ sp = min(m,n)/20;
 
 real = true;
 
-num_repeats = 50; 
-maxiter = 2e5;  
+num_repeats = 50;    
+maxiter = 2e5;    
 
 number_data_points = 500;
 iter_save = floor(maxiter/number_data_points);  % each such number of iterations, a data point is added in the error plot

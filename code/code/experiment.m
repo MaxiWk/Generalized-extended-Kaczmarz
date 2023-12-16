@@ -454,7 +454,7 @@ end  % end for loop over repeats
 
 
     % save first row of figures in txt file (errors over iterations)
-
+%{
     num_iter_array = (1:iter_save:maxiter)';
 
     % (1,1)
@@ -516,7 +516,7 @@ end  % end for loop over repeats
      median_err_to_sparse(:,1), median_err_to_sparse(:,2), median_err_to_sparse(:,3), ...
      quant25_err_to_sparse(:,1), quant25_err_to_sparse(:,2), quant25_err_to_sparse(:,3), ...
      quant75_err_to_sparse(:,1), quant75_err_to_sparse(:,2), quant75_err_to_sparse(:,3)]); 
-
+%}
 
     
 
@@ -586,7 +586,7 @@ end  % end for loop over repeats
 
 
     % save second row of figures in txt file (stem plots of solutions)
-
+%{
     xhat_plot = xhat;
     x_plot = x_last_repeat;
     if ~real
@@ -607,7 +607,7 @@ end  % end for loop over repeats
     {'i', 'xhat', 'x_rek', 'x_srk', 'x_gerk_ad', 'x_gerk_bd'}, ...
     1:length(xhat_plot), ...
     [xhat_plot, x_plot(:,1), x_plot(:,2), x_plot(:,3)]); 
-    
+%}
 
 
 
