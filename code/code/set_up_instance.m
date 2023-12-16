@@ -2,7 +2,7 @@
 
 function problem_data = set_up_instance(m, n, sp, real, experiment_description)
   
-  b_exact = 0;  
+  bhat = 0;  
   tol_resAbz = 0;
   tol_resATz = 0;
   
@@ -28,10 +28,10 @@ function problem_data = set_up_instance(m, n, sp, real, experiment_description)
           rel_cond_A = compute_rel_cond(A,rank);
                  
           xhat = sparserandn(n,sp,real);  % true solution          
-          b_exact = A*xhat;               % exact data
+          bhat = A*xhat;               % exact data
           
-          noiselev = noise_factor_rangeA_ortho *norm(b_exact);
-          b = add_noise_in_RAc(b_exact, A, noiselev);
+          noiselev = noise_factor_rangeA_ortho *norm(bhat);
+          b = add_noise_in_RAc(bhat, A, noiselev);
           
           tol_resAbz = 1e-4;
           tol_resATz = 1e-6;
@@ -53,17 +53,16 @@ function problem_data = set_up_instance(m, n, sp, real, experiment_description)
           sing_values_data.sigma_min = 0.001; 
           sing_values_data.sigma_max = 10;
           
-
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real,sing_values_data);
           rel_cond_A = compute_rel_cond(A,rank);
           xhat = sparserandn(n,sp,real);  % true solution          
-          b_exact = A*xhat;               % exact data          
+          bhat = A*xhat;               % exact data          
           
-          noiselev_impulsive = noiselev_impulsive_factor *max(abs(b_exact));
-          b = add_fixed_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real);
+          noiselev_impulsive = noiselev_impulsive_factor * max(abs(bhat));
+          b = add_fixed_impulsive_noise(bhat, num_comp_noise, noiselev_impulsive, real);
                   
-          tol_resAbz = noiselev_impulsive*1e-6;
-          tol_resATz = noiselev_impulsive*1e-3; 
+          tol_resAbz = noiselev_impulsive * 1e-6;
+          tol_resATz = noiselev_impulsive * 1e-3; 
  
  
           
@@ -82,14 +81,38 @@ function problem_data = set_up_instance(m, n, sp, real, experiment_description)
           A = random_rank_deficient_matrix_with_condition(m,n,rank,real,sing_values_data);
           rel_cond_A = compute_rel_cond(A,rank);
           xhat = sparserandn(n,sp,real);  % true solution          
-          b_exact = A*xhat;               % exact data          
+          bhat = A*xhat;               % exact data          
           
-          noiselev_impulsive = noiselev_impulsive_factor *max(abs(b_exact));
-          b = add_fixed_impulsive_noise(b_exact, num_comp_noise, noiselev_impulsive, real);
+          noiselev_impulsive = noiselev_impulsive_factor *max(abs(bhat));
+          b = add_fixed_impulsive_noise(bhat, num_comp_noise, noiselev_impulsive, real);
                   
           tol_resAbz = noiselev_impulsive*1e-6;
           tol_resATz = noiselev_impulsive*1e-3; 
            
+          
+          
+          
+     case 'fixed small impulsive noise, rank deficient, uniform, medium conditioned'      
+  
+          num_comp_noise = ceil(min(m,n)/20);
+          noiselev_impulsive_factor = 0.1;
+          
+          rank = round(min(m,n)/2);
+          sing_values_data.distribution = 'uniform';
+          sing_values_data.sigma_min = 0.001; 
+          sing_values_data.sigma_max = 10;
+          
+
+          A = random_rank_deficient_matrix_with_condition(m,n,rank,real,sing_values_data);
+          rel_cond_A = compute_rel_cond(A,rank);
+          xhat = sparserandn(n,sp,real);  % true solution          
+          bhat = A*xhat;               % exact data          
+          
+          noiselev_impulsive = noiselev_impulsive_factor *max(abs(bhat));
+          b = add_fixed_impulsive_noise(bhat, num_comp_noise, noiselev_impulsive, real);
+                  
+          tol_resAbz = noiselev_impulsive*1e-6;
+          tol_resATz = noiselev_impulsive*1e-3; 
           
           
           
@@ -157,7 +180,7 @@ function problem_data = set_up_instance(m, n, sp, real, experiment_description)
 
   function b = add_fixed_impulsive_noise(b, num_comp_noise, noiselev, real_setting)
           
-      supp_impulsive_noise = randsample(m, num_comp_noise);
+      supp_impulsive_noise = rand_sample(m, num_comp_noise);
       rand_signs = (-1).^ randi(2, 1, num_comp_noise)';
       sparse_random_vector = rand_signs * noiselev;
 
@@ -174,7 +197,7 @@ function problem_data = set_up_instance(m, n, sp, real, experiment_description)
 
   function b = add_randn_impulsive_noise(b, num_comp_noise, noiselev, real_setting)
           
-      supp_impulsive_noise = randsample(m,num_comp_noise);
+      supp_impulsive_noise = rand_sample(m,num_comp_noise);
       sparse_random_vector = noiselev *(2*rand(length(supp_impulsive_noise),1)-1);
 
       if ~real_setting
@@ -206,9 +229,13 @@ function problem_data = set_up_instance(m, n, sp, real, experiment_description)
  problem_data.A = A; 
  problem_data.rel_cond_A = rel_cond_A;
  problem_data.xhat = xhat;
- problem_data.b_exact = b_exact;
+ problem_data.bhat = bhat;
  problem_data.b = b;
  problem_data.tol_resAbz = tol_resAbz;
  problem_data.tol_resATz = tol_resATz;
 
 end
+
+
+
+

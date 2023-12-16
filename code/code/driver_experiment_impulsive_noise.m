@@ -23,18 +23,17 @@ lambda = 10;
 epsilon = 0.01;  
 tau = 0.001;    
 
-writeout = true;
+writeout = false;
 
 
 
-%experiment_description = 'impulsive noise, rank deficient, uniform, well conditioned';
-%experiment_description = 'impulsive noise, rank deficient, uniform, bad conditioned';
-%experiment_description = 'impulsive noise, rank deficient, uniform, medium conditioned';
+% experiment_description = 'fixed impulsive noise, rank deficient, uniform, medium conditioned';
 experiment_description = 'fixed impulsive noise, rank deficient, uniform, medium conditioned';
-%experiment_description = 'fixed impulsive noise, rank deficient, uniform, bad conditioned';
+
+txt_output_path = './figures_txt/experiment_II_complex';
 
 data = experiment(m, n, sp, real, lambda, epsilon, tau, maxiter, num_repeats, iter_save, rowsamp, colsamp, ...
-           writeout, method_ids, experiment_description);
+           writeout, method_ids, txt_output_path, experiment_description);
 
 
 
